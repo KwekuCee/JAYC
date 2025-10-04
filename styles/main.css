@@ -163,6 +163,25 @@ body {
     margin-bottom: 2rem;
 }
 
+/* Force single column on mobile */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+    
+    /* Ensure all form elements are visible */
+    .form-group {
+        width: 100%;
+    }
+    
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
@@ -523,3 +542,4 @@ body {
         font-size: 16px;
     }
 }
+
