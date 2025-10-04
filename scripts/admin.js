@@ -42,21 +42,28 @@ function showAdminDashboard() {
     loadAdminData();
 }
 
-// Load all admin data
-function loadAdminData() {
-    const members = getMembers();
-    const inviters = getInviters();
-    
-    updateStats(members, inviters);
-    loadChurchDistribution(members);
-    loadRecentRegistrations(members);
-    loadFileManagement(members, inviters);
-    loadInvitersManagement(inviters);
-    loadMembersManagement(members);
-    
-    // Setup search functionality
-    setupSearch();
+// Updated loadAdminData function
+async function loadAdminData() {
+    try {
+        const members = await Database.getMembers();
+        const inviters = await Database.getInviters();
+        
+        updateStats(members, inviters);
+        loadChurchDistribution(members);
+        loadRecentRegistrations(members);
+        loadFileManagement(members, inviters);
+        loadInvitersManagement(inviters);
+        loadMembersManagement(members);
+        
+        setupSearch();
+        
+    } catch (error) {
+        console.error('Error loading admin data:', error);
+        showNotification('Error loading data', 'error');
+    }
 }
+
+// Update all other functions in admin.js to use Database class instead of localStorage
 
 // Get members data
 function getMembers() {
@@ -799,3 +806,4 @@ style.textContent = `
 `;
 
 document.head.appendChild(style);
+
