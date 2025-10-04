@@ -752,6 +752,32 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
+// Mobile sidebar toggle
+function toggleSidebar() {
+    const sidebar = document.querySelector('.admin-sidebar');
+    sidebar.classList.toggle('mobile-open');
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', function(event) {
+    const sidebar = document.querySelector('.admin-sidebar');
+    const mobileBtn = document.querySelector('.mobile-menu-btn');
+    
+    if (window.innerWidth <= 768 && 
+        sidebar.classList.contains('mobile-open') &&
+        !sidebar.contains(event.target) &&
+        !mobileBtn.contains(event.target)) {
+        sidebar.classList.remove('mobile-open');
+    }
+});
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    const sidebar = document.querySelector('.admin-sidebar');
+    if (window.innerWidth > 768) {
+        sidebar.classList.remove('mobile-open');
+    }
+});
 // Add CSS animations for notifications
 const style = document.createElement('style');
 style.textContent = `
@@ -771,4 +797,5 @@ style.textContent = `
         gap: 0.5rem;
     }
 `;
+
 document.head.appendChild(style);
