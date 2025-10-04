@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - JAYC</title>
+
+    <!--Favicon-->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+    <link rel="stylesheet" href="styles/admin.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Login Screen -->
+        <div id="loginScreen" class="login-screen">
+            <div class="login-card">
+                <div class="login-header">
+                    <i class="fas fa-lock"></i>
+                    <h1>Admin Login</h1>
+                    <p>Access the church registration admin dashboard</p>
+                </div>
+                
+                <form id="adminLoginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="adminUsername">Username</label>
+                        <input type="text" id="adminUsername" name="username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" name="password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-login">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Login to Dashboard
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <a href="index.html" class="btn btn-secondary btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Main Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="adminDashboard" class="admin-dashboard" style="display: none;">
+            <!-- Sidebar -->
+            <nav class="admin-sidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-brand">
+                        <img src="images/logo2.png" alt="Church Logo" class="sidebar-logo">
+                        <div>
+                            <h1>Admin Panel</h1>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-nav">
+                    <a href="#overview" class="sidebar-item active" onclick="showSection('overview')">
+                        <i class="fas fa-chart-bar"></i>
+                        Overview
+                    </a>
+                    <a href="#files" class="sidebar-item" onclick="showSection('files')">
+                        <i class="fas fa-file-excel"></i>
+                        File Management
+                    </a>
+                    <a href="#inviters" class="sidebar-item" onclick="showSection('inviters')">
+                        <i class="fas fa-user-cog"></i>
+                        Manage Inviters
+                    </a>
+                    <a href="#members" class="sidebar-item" onclick="showSection('members')">
+                        <i class="fas fa-users-cog"></i>
+                        Manage Members
+                    </a>
+                    <a href="#exports" class="sidebar-item" onclick="showSection('exports')">
+                        <i class="fas fa-download"></i>
+                        Data Export
+                    </a>
+                    <a href="index.html" class="sidebar-item">
+                        <i class="fas fa-home"></i>
+                        Main Dashboard
+                    </a>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="admin-main">
+                <!-- Header -->
+                <header class="admin-header">
+                    <div class="admin-header-content">
+                        <div class="admin-breadcrumb">
+                            <h1 id="sectionTitle">Dashboard Overview</h1>
+                            <p id="sectionDescription">Real-time statistics and analytics</p>
+                        </div>
+                        
+                        <div class="admin-actions">
+                            <button class="btn btn-info btn-sm" onclick="refreshData()">
+                                <i class="fas fa-sync-alt"></i>
+                                Refresh
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="logout()">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Overview Section -->
+                <section id="overview" class="admin-section active">
+                    <!-- Stats Overview -->
+                    <div class="stats-overview">
+                        <div class="stat-card">
+                            <div class="stat-icon total-members">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalMembers">0</h3>
+                                <p>Total Members</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon total-inviters">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalInviters">0</h3>
+                                <p>Total Inviters</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon churches">
+                                <i class="fas fa-church"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="totalChurches">0</h3>
+                                <p>Active Churches</p>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon recent">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="todayRegistrations">0</h3>
+                                <p>Today's Registrations</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="admin-content">
+                        <!-- Churches Distribution -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2><i class="fas fa-chart-pie"></i> Members by Church</h2>
+                            </div>
+                            <div class="card-body">
+                                <div id="churchDistribution" class="distribution-chart">
+                                    <!-- Church distribution will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Registrations -->
+                        <div class="content-card">
+                            <div class="card-header">
+                                <h2><i class="fas fa-clock"></i> Recent Registrations</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="registrations-list" id="recentRegistrations">
+                                    <!-- Recent registrations will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- File Management Section -->
+                <section id="files" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-file-excel"></i> Inviter Files Management</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="file-management" id="fileManagement">
+                                    <!-- Files will be loaded here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Inviters Management Section -->
+                <section id="inviters" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-user-cog"></i> Manage Inviters</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="inviters-management" id="invitersManagement">
+                                    <!-- Inviters list with edit/delete options -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Members Management Section -->
+                <section id="members" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-users-cog"></i> Manage Members</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="members-management">
+                                    <div class="search-bar">
+                                        <input type="text" id="memberSearch" placeholder="Search members by name, email, church, or inviter..." class="search-input">
+                                    </div>
+                                    <div class="members-list" id="membersManagement">
+                                        <!-- Members list with edit/delete options -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Export Section -->
+                <section id="exports" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-download"></i> Export Data</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="export-options">
+                                    <button class="btn btn-primary btn-lg" onclick="exportAllData()">
+                                        <i class="fas fa-file-excel"></i>
+                                        Export All Data to Excel
+                                    </button>
+                                    <button class="btn btn-success btn-lg" onclick="exportInvitersData()">
+                                        <i class="fas fa-user-friends"></i>
+                                        Export Inviters List
+                                    </button>
+                                    <button class="btn btn-warning btn-lg" onclick="generateAllInviterFiles()">
+                                        <i class="fas fa-file-archive"></i>
+                                        Generate All Inviter Files
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script src="scripts/admin.js"></script>
+</body>
+</html>

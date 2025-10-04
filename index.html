@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAYC Registration</title>
+
+    <!--Favicon-->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+               <div class="logo">
+                    <img src="images/Logo.png" alt="Church Logo" class="logo-image">
+                    
+                </div>
+                <nav class="nav">
+                    <button class="nav-btn active" data-tab="registration">Registration</button>
+                    <button class="nav-btn" data-tab="inviters">Inviters</button>
+                    <a href="signup.html" class="signup-btn">
+                        <i class="fas fa-user-plus"></i>
+                        Sign Up as Inviter
+                    </a>
+                    <a href="admin.html" class="admin-btn">
+                        <i class="fas fa-lock"></i>
+                        Admin
+                    </a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Registration Section -->
+            <section id="registration" class="tab-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-plus"></i> Member Registration</h2>
+                        <p>Register new church members</p>
+                    </div>
+                    
+                    <form id="registrationForm" class="registration-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="fullName">
+                                    <i class="fas fa-user"></i>
+                                    Full Name *
+                                </label>
+                                <input type="text" id="fullName" name="fullName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="email">
+                                    <i class="fas fa-envelope"></i>
+                                    Email Address *
+                                </label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">
+                                    <i class="fas fa-phone"></i>
+                                    Phone Number *
+                                </label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="occupation">
+                                    <i class="fas fa-briefcase"></i>
+                                    Occupation *
+                                </label>
+                                <input type="text" id="occupation" name="occupation" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="location">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    Location *
+                                </label>
+                                <input type="text" id="location" name="location" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inviterName">
+                                    <i class="fas fa-users"></i>
+                                    Name of Inviter *
+                                </label>
+                                <select id="inviterName" name="inviterName" required>
+                                    <option value="">Select Inviter</option>
+                                    <!-- Dynamically populated -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-register">
+                                <i class="fas fa-user-check"></i>
+                                Register Member
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Inviters Section -->
+            <section id="inviters" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-users"></i> Registered Inviters</h2>
+                        <p>View inviters grouped by church</p>
+                    </div>
+                    
+                    <div class="church-groups" id="churchGroups">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Registration Successful!</h3>
+            <p>Member has been registered successfully.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <script src="scripts/app.js"></script>
+    <script>
+// Debug script
+console.log('Page loaded successfully');
+console.log('Inviter count:', JSON.parse(localStorage.getItem('inviters') || '[]').length);
+console.log('Member count:', JSON.parse(localStorage.getItem('members') || '[]').length);
+
+// Check if form exists
+const form = document.getElementById('registrationForm');
+console.log('Form found:', !!form);
+
+// Check if inviter dropdown is populated
+const inviterSelect = document.getElementById('inviterName');
+console.log('Inviter select options:', inviterSelect ? inviterSelect.options.length : 'not found');
+</script>
+</body>
+</html>

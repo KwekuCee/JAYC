@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inviter Signup - JAYC</title>
+
+    <!--Favicon-->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-church"></i>
+                    Jesus Alive Youth Conference
+                </h1>
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="card signup-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-user-plus"></i> Inviter Signup</h2>
+                    <p>Register as an inviter to start bringing members to your church</p>
+                </div>
+
+                <form id="signupForm" class="registration-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="inviterFullName">
+                                <i class="fas fa-user"></i>
+                                Full Name *
+                            </label>
+                            <input type="text" id="inviterFullName" name="fullName" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inviterEmail">
+                                <i class="fas fa-envelope"></i>
+                                Email Address *
+                            </label>
+                            <input type="email" id="inviterEmail" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inviterChurch">
+                                <i class="fas fa-church"></i>
+                                Church Name *
+                            </label>
+                            <select id="inviterChurch" name="churchName" required>
+                                <option value="">Select Church</option>
+                                <option value="CE GCYC TESANO">CE GCYC TESANO</option>
+                                <option value="CE GCYC MAKARIOS">CE GCYC MAKARIOS</option>
+                                <option value="CE GCYC BOXING ARENA">CE GCYC BOXING ARENA</option>
+                                <option value="CEYC LACAN">CEYC LACAN</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="authCode">
+                                <i class="fas fa-key"></i>
+                                Authentication Code *
+                            </label>
+                            <input type="password" id="authCode" name="authCode" required placeholder="Enter authentication code">
+                            <small class="help-text">Contact admin for authentication code</small>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-user-check"></i>
+                            Sign Up as Inviter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3>Signup Successful!</h3>
+            <p>You are now registered as an inviter.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Continue</button>
+        </div>
+    </div>
+
+    <script src="scripts/auth.js"></script>
+</body>
+</html>
