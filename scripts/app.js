@@ -32,74 +32,99 @@ function initializeTabs() {
     });
 }
 
-// Populate inviter dropdown
-function populateInviterDropdown() {
+// Updated populateInviterDropdown function
+async function populateInviterDropdown() {
     const inviterSelect = document.getElementById('inviterName');
-    console.log('Populating inviter dropdown...', inviters);
     
-    // Clear existing options except the first one
-    inviterSelect.innerHTML = '<option value="">Select Inviter</option>';
-    
-    if (inviters.length === 0) {
-        console.log('No inviters found');
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'No inviters available - Please sign up first';
-        option.disabled = true;
-        inviterSelect.appendChild(option);
-        return;
+    try {
+        // Get inviters from database
+        const inviters = await Database.getInviters();
+        console.log('Inviters from database:', inviters);
+        
+        // Clear existing options
+        inviterSelect.innerHTML = '<option value="">Select Inviter</option>';
+        
+        if (inviters.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No inviters available - Please sign up first';
+            option.disabled = true;
+            inviterSelect.appendChild(option);
+            return;
+        }
+        
+        // Populate dropdown
+        inviters.forEach(inviter => {
+            const option = document.createElement('option');
+            option.value = inviter.full_name;
+            option.textContent = `${inviter.full_name} - ${inviter.church_name}`;
+            inviterSelect.appendChild(option);
+        });
+        
+    } catch (error) {
+        console.error('Error loading inviters:', error);
+        inviterSelect.innerHTML = '<option value="">Error loading inviters</option>';
     }
-    
-    inviters.forEach(inviter => {
-        const option = document.createElement('option');
-        option.value = inviter.fullName;
-        option.textContent = `${inviter.fullName} - ${inviter.churchName}`;
-        inviterSelect.appendChild(option);
-    });
-    
-    console.log('Inviter dropdown populated with', inviters.length, 'options');
 }
-
-// Load church groups for inviters view
-function loadChurchGroups() {
+/////////
+// Updated loadChurchGroups function
+async function loadChurchGroups() {
     const churchGroups = document.getElementById('churchGroups');
     
-    // Group inviters by church
-    const churches = {};
-    inviters.forEach(inviter => {
-        if (!churches[inviter.churchName]) {
-            churches[inviter.churchName] = [];
+    try {
+        const inviters = await Database.getInviters();
+        const members = await Database.getMembers();
+        
+        // Group inviters by church
+        const churches = {};
+        inviters.forEach(inviter => {
+            if (!churches[inviter.church_name]) {
+                churches[inviter.church_name] = [];
+            }
+            churches[inviter.church_name].push(inviter);
+        });
+        
+        if (Object.keys(churches).length === 0) {
+            churchGroups.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-church"></i>
+                    <p>No inviters registered yet</p>
+                </div>
+            `;
+            return;
         }
-        churches[inviter.churchName].push(inviter);
-    });
-    
-    if (Object.keys(churches).length === 0) {
-        churchGroups.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-church"></i>
-                <p>No inviters registered yet</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Create church group sections
-    churchGroups.innerHTML = Object.keys(churches).map(churchName => `
-        <div class="church-group">
-            <h3><i class="fas fa-church"></i> ${churchName}</h3>
-            <div class="inviters-grid">
-                ${churches[churchName].map(inviter => `
-                    <div class="inviter-card">
-                        <h4>${inviter.fullName}</h4>
-                        <p><i class="fas fa-envelope"></i> ${inviter.email}</p>
-                        <p><i class="fas fa-users"></i> ${getMemberCount(inviter.fullName)} members registered</p>
+        
+        // Create church group sections
+        churchGroups.innerHTML = Object.keys(churches).map(churchName => {
+            const churchInviters = churches[churchName];
+            
+            return `
+                <div class="church-group">
+                    <h3><i class="fas fa-church"></i> ${churchName}</h3>
+                    <div class="inviters-grid">
+                        ${churchInviters.map(inviter => {
+                            const memberCount = members.filter(member => 
+                                member.inviter_name === inviter.full_name
+                            ).length;
+                            
+                            return `
+                                <div class="inviter-card">
+                                    <h4>${inviter.full_name}</h4>
+                                    <p><i class="fas fa-envelope"></i> ${inviter.email}</p>
+                                    <p><i class="fas fa-users"></i> ${memberCount} members registered</p>
+                                </div>
+                            `;
+                        }).join('')}
                     </div>
-                `).join('')}
-            </div>
-        </div>
-    `).join('');
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error loading church groups:', error);
+        churchGroups.innerHTML = '<p>Error loading data</p>';
+    }
 }
-
 // Get member count for an inviter
 function getMemberCount(inviterName) {
     return members.filter(member => member.inviterName === inviterName).length;
@@ -171,25 +196,26 @@ function setupFormHandlers() {
     console.log('Form handler setup complete');
 }
 
-// Register member
-function registerMember(memberData) {
+// Updated registerMember function
+async function registerMember(memberData) {
     try {
         console.log('Registering member:', memberData);
         
-        // Add to members array
-        members.push(memberData);
-        localStorage.setItem('members', JSON.stringify(members));
+        // Save to database
+        const newMember = await Database.registerMember(memberData);
         
-        console.log('Member registered successfully. Total members:', members.length);
-        
-        // Show success modal
-        showSuccessModal();
-        
-        // Reset form
-        document.getElementById('registrationForm').reset();
-        
-        // Refresh the inviters view to show updated counts
-        loadChurchGroups();
+        if (newMember) {
+            console.log('Member registered successfully in database');
+            
+            // Show success modal
+            showSuccessModal();
+            
+            // Reset form
+            document.getElementById('registrationForm').reset();
+            
+        } else {
+            throw new Error('Failed to register member');
+        }
         
     } catch (error) {
         console.error('Error registering member:', error);
@@ -229,4 +255,5 @@ window.addEventListener('pageshow', function() {
     members = JSON.parse(localStorage.getItem('members')) || [];
     populateInviterDropdown();
     loadChurchGroups();
+
 });
