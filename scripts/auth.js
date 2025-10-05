@@ -1,5 +1,7 @@
 // Inviter signup functionality
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Auth.js loaded on signup page');
+    
     const signupForm = document.getElementById('signupForm');
     
     if (!signupForm) {
@@ -7,9 +9,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    console.log('Signup form found, setting up event listener');
+    
     signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
-        console.log('Signup form submitted');
+        console.log('=== SIGNUP FORM SUBMITTED ===');
         
         const formData = {
             fullName: document.getElementById('inviterFullName').value.trim(),
@@ -18,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             authCode: document.getElementById('authCode').value.trim()
         };
         
-        console.log('Form data:', formData);
+        console.log('Form data collected:', formData);
         
         // Validate required fields
         if (!formData.fullName || !formData.email || !formData.churchName || !formData.authCode) {
@@ -46,10 +50,10 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         
         try {
-            // Register inviter
+            console.log('Attempting to register inviter...');
             await registerInviter(formData);
         } catch (error) {
-            console.error('Signup error:', error);
+            console.error('Signup process failed:', error);
             // Reset button
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
@@ -59,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function registerInviter(inviterData) {
     try {
-        console.log('Starting inviter registration:', inviterData);
+        console.log('Starting database registration...');
         
         // Prepare data for database
         const dbData = {
@@ -73,17 +77,17 @@ async function registerInviter(inviterData) {
         // Save to database
         const newInviter = await Database.registerInviter(dbData);
         
-        console.log('Database response:', newInviter);
+        console.log('Database response received:', newInviter);
         
         if (newInviter) {
-            console.log('Registration successful, showing modal');
+            console.log('✅ Registration successful in database');
             showSuccessModal();
         } else {
             throw new Error('No data returned from database');
         }
         
     } catch (error) {
-        console.error('Registration error:', error);
+        console.error('❌ Registration failed:', error);
         
         // Show specific error messages
         if (error.message.includes('duplicate key') || error.message.includes('already exists')) {
@@ -93,30 +97,31 @@ async function registerInviter(inviterData) {
         } else {
             alert('Error registering inviter: ' + error.message);
         }
-        throw error; // Re-throw to handle in form submit
+        throw error;
     }
 }
 
 // Modal functions for signup page
 function showSuccessModal() {
-    console.log('showSuccessModal called');
+    console.log('Attempting to show success modal...');
     const modal = document.getElementById('successModal');
     if (modal) {
         modal.style.display = 'flex';
-        console.log('Modal displayed');
+        console.log('✅ Success modal displayed');
     } else {
-        // Fallback if modal doesn't exist
+        console.error('❌ Success modal not found in DOM');
+        // Fallback
         alert('Registration successful! You can now close this page and return to the main dashboard.');
     }
 }
 
 function closeModal() {
-    console.log('closeModal called');
+    console.log('Closing modal and redirecting...');
     const modal = document.getElementById('successModal');
     if (modal) {
         modal.style.display = 'none';
     }
-    // Redirect to main dashboard when modal is closed
+    // Redirect to main dashboard
     window.location.href = 'index.html';
 }
 
@@ -128,8 +133,8 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// Make functions globally available for HTML onclick events
+// Make functions globally available
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
 
-console.log('Auth.js loaded successfully');
+console.log('✅ Auth.js initialization complete');
