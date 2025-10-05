@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <script>
+        const SUPABASE_URL = 'YOUR_NEW_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_NEW_SUPABASE_ANON_KEY';
+        
+        console.log('Testing Supabase manually...');
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Test connection
+        supabase.from('inviters').select('*').limit(1).then(result => {
+            console.log('Manual test result:', result);
+        }).catch(error => {
+            console.error('Manual test error:', error);
+        });
+    </script>
+</body>
+</html>
