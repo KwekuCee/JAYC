@@ -27,17 +27,28 @@ document.addEventListener('DOMContentLoaded', function() {
 // Updated registerInviter function
 async function registerInviter(inviterData) {
     try {
+        console.log('Starting inviter registration:', inviterData);
+        
         // Validate authentication code
         if (inviterData.authCode !== 'CHURCH2024') {
             alert('Invalid authentication code. Please contact admin.');
             return;
         }
         
-        // Remove authCode before saving to database
-        const { authCode, ...inviterDataWithoutAuth } = inviterData;
+        // Prepare data for database (remove authCode)
+        const dbData = {
+            full_name: inviterData.fullName,
+            email: inviterData.email,
+            church_name: inviterData.churchName
+            // registration_date is auto-added by database
+        };
+        
+        console.log('Sending to database:', dbData);
         
         // Save to database
-        const newInviter = await Database.registerInviter(inviterDataWithoutAuth);
+        const newInviter = await Database.registerInviter(dbData);
+        
+        console.log('Database response:', newInviter);
         
         if (newInviter) {
             showSuccessModal();
@@ -45,15 +56,19 @@ async function registerInviter(inviterData) {
                 window.location.href = 'index.html';
             }, 2000);
         } else {
-            alert('Error registering inviter. Please try again.');
+            throw new Error('No data returned from database');
         }
         
     } catch (error) {
-        console.error('Error:', error);
-        if (error.message.includes('duplicate key')) {
-            alert('An inviter with this email already exists.');
+        console.error('Registration error details:', error);
+        
+        // Show specific error messages
+        if (error.message.includes('duplicate key') || error.message.includes('already exists')) {
+            alert('An inviter with this email already exists. Please use a different email.');
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            alert('Network error. Please check your internet connection and try again.');
         } else {
-            alert('Error registering inviter. Please try again.');
+            alert('Error registering inviter: ' + error.message);
         }
     }
 }
