@@ -401,6 +401,13 @@ async function deleteInviter(email) {
     }
     
     try {
+        // Get the supabase client from window
+        const supabase = window.supabase;
+        
+        if (!supabase) {
+            throw new Error('Database connection not available');
+        }
+        
         // Delete from Supabase
         const { error } = await supabase
             .from('inviters')
@@ -431,6 +438,13 @@ async function deleteMember(email) {
     }
     
     try {
+        // Get the supabase client from window
+        const supabase = window.supabase;
+        
+        if (!supabase) {
+            throw new Error('Database connection not available');
+        }
+        
         // Delete from Supabase
         const { error } = await supabase
             .from('members')
@@ -467,6 +481,13 @@ async function editInviter(email) {
         
         const newName = prompt('Enter new name for inviter:', inviter.full_name);
         if (newName && newName.trim() !== '') {
+            // Get the supabase client from window
+            const supabase = window.supabase;
+            
+            if (!supabase) {
+                throw new Error('Database connection not available');
+            }
+            
             // Update in Supabase
             const { error } = await supabase
                 .from('inviters')
@@ -503,6 +524,13 @@ async function editMember(email) {
         
         const newName = prompt('Enter new name for member:', member.full_name);
         if (newName && newName.trim() !== '') {
+            // Get the supabase client from window
+            const supabase = window.supabase;
+            
+            if (!supabase) {
+                throw new Error('Database connection not available');
+            }
+            
             // Update in Supabase
             const { error } = await supabase
                 .from('members')
@@ -790,3 +818,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
