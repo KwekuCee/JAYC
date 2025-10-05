@@ -2,8 +2,8 @@
 console.log('=== STARTING SUPABASE DEBUG ===');
 
 // Replace with your actual new credentials
-const SUPABASE_URL = 'YOUR_NEW_SUPABASE_URL_HERE';
-const SUPABASE_ANON_KEY = 'YOUR_NEW_SUPABASE_ANON_KEY_HERE';
+const SUPABASE_URL = 'https://bbmcgriiakxlrzdwogqn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibWNncmlpYWt4bHJ6ZHdvZ3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2ODEzOTgsImV4cCI6MjA3NTI1NzM5OH0.b01T393EkDXuMzt6GPoeDnOdNQ8Aan-2yYA-fcZikfQ';
 
 console.log('1. Checking Supabase library...');
 console.log('window.supabase:', typeof window.supabase);
