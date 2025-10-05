@@ -394,74 +394,32 @@ function loadFilteredMembers(members) {
     `;
 }
 
-// REAL Delete inviter function
+// SIMPLIFIED Delete inviter function - uses Database class
 async function deleteInviter(email) {
     if (!confirm('Are you sure you want to delete this inviter? This will remove them from the database permanently.')) {
         return;
     }
     
     try {
-        // Get the supabase client from window
-        const supabase = window.supabase;
-        
-        if (!supabase) {
-            throw new Error('Database connection not available');
-        }
-        
-        // Delete from Supabase
-        const { error } = await supabase
-            .from('inviters')
-            .delete()
-            .eq('email', email);
-        
-        if (error) {
-            throw error;
-        }
-        
+        await Database.deleteInviter(email);
         showNotification('Inviter deleted successfully!', 'success');
-        
-        // Refresh the data to show the change
-        setTimeout(() => {
-            loadAdminData();
-        }, 1000);
-        
+        loadAdminData();
     } catch (error) {
         console.error('Error deleting inviter:', error);
         showNotification('Error deleting inviter: ' + error.message, 'error');
     }
 }
 
-// REAL Delete member function
+// SIMPLIFIED Delete member function - uses Database class
 async function deleteMember(email) {
     if (!confirm('Are you sure you want to delete this member? This will remove them from the database permanently.')) {
         return;
     }
     
     try {
-        // Get the supabase client from window
-        const supabase = window.supabase;
-        
-        if (!supabase) {
-            throw new Error('Database connection not available');
-        }
-        
-        // Delete from Supabase
-        const { error } = await supabase
-            .from('members')
-            .delete()
-            .eq('email', email);
-        
-        if (error) {
-            throw error;
-        }
-        
+        await Database.deleteMember(email);
         showNotification('Member deleted successfully!', 'success');
-        
-        // Refresh the data to show the change
-        setTimeout(() => {
-            loadAdminData();
-        }, 1000);
-        
+        loadAdminData();
     } catch (error) {
         console.error('Error deleting member:', error);
         showNotification('Error deleting member: ' + error.message, 'error');
@@ -818,4 +776,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
