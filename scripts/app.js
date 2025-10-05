@@ -1,7 +1,3 @@
-// Sample data storage
-let inviters = JSON.parse(localStorage.getItem('inviters')) || [];
-let members = JSON.parse(localStorage.getItem('members')) || [];
-
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing application...');
@@ -9,6 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     populateInviterDropdown();
     loadChurchGroups();
     setupFormHandlers();
+    
+    // Run debug after a short delay
+    setTimeout(debugInviters, 1000);
 });
 
 // Show success modal
@@ -83,9 +82,9 @@ async function populateInviterDropdown() {
         // Populate dropdown
         inviters.forEach(inviter => {
             const option = document.createElement('option');
-            option.value = inviter.full_name; // Make sure this matches what we search for
+            option.value = inviter.full_name;
             option.textContent = `${inviter.full_name} - ${inviter.church_name}`;
-            option.setAttribute('data-church', inviter.church_name); // Store church name
+            option.setAttribute('data-church', inviter.church_name);
             inviterSelect.appendChild(option);
         });
         
@@ -97,8 +96,7 @@ async function populateInviterDropdown() {
     }
 }
 
-
-// Updated loadChurchGroups function
+// Load church groups for inviters view
 async function loadChurchGroups() {
     const churchGroups = document.getElementById('churchGroups');
     
@@ -153,12 +151,8 @@ async function loadChurchGroups() {
         
     } catch (error) {
         console.error('Error loading church groups:', error);
-        churchGroups.innerHTML = '<p>Error loading data</p>';
+        churchGroups.innerHTML = '<div class="empty-state"><p>Error loading data</p></div>';
     }
-}
-// Get member count for an inviter
-function getMemberCount(inviterName) {
-    return members.filter(member => member.inviterName === inviterName).length;
 }
 
 // Setup form handlers
@@ -184,54 +178,52 @@ function setupFormHandlers() {
         
         console.log('Selected inviter:', selectedInviterName);
         
-        // Get church name from the dropdown (if you have one) or from the selected inviter
         let churchName = '';
         
-        // If you have a church dropdown, get value from there
-        const churchSelect = document.getElementById('churchName');
-        if (churchSelect) {
-            churchName = churchSelect.value;
+        // Get church name from the selected option's data attribute
+        const selectedOption = document.getElementById('inviterName').selectedOptions[0];
+        if (selectedOption && selectedOption.getAttribute('data-church')) {
+            churchName = selectedOption.getAttribute('data-church');
+            console.log('Found church from dropdown data:', churchName);
         }
         
-        // If no church dropdown, we need to get the church from the selected inviter
+        // If we still don't have church name, try to get it from database
         if (!churchName) {
             try {
-                // Get all inviters to find the selected one's church
                 const inviters = await Database.getInviters();
                 const selectedInviter = inviters.find(inv => inv.full_name === selectedInviterName);
-                
                 if (selectedInviter) {
                     churchName = selectedInviter.church_name;
-                    console.log('Found church from inviter:', churchName);
-                } else {
-                    // If we can't find the inviter, show error
-                    alert('Selected inviter not found in database. Please refresh the page and try again.');
-                    return;
+                    console.log('Found church from database:', churchName);
                 }
             } catch (error) {
-                console.error('Error getting inviter church:', error);
-                alert('Error getting church information. Please try again.');
-                return;
+                console.error('Error getting church:', error);
             }
+        }
+        
+        // Final validation
+        if (!churchName) {
+            alert('Could not determine church. Please try again.');
+            return;
         }
         
         // Get form values
         const formData = {
-            fullName: document.getElementById('fullName').value.trim(),
+            full_name: document.getElementById('fullName').value.trim(),
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
             occupation: document.getElementById('occupation').value.trim(),
             location: document.getElementById('location').value.trim(),
-            churchName: churchName,
-            inviterName: selectedInviterName,
-            registrationDate: new Date().toISOString()
+            church_name: churchName,
+            inviter_name: selectedInviterName,
+            registration_date: new Date().toISOString()
         };
         
         console.log('Form data to register:', formData);
         
         // Validate required fields
-        if (!formData.fullName || !formData.email || !formData.phone || 
-            !formData.occupation || !formData.location || !formData.churchName) {
+        if (!formData.full_name || !formData.email || !formData.phone || 
+            !formData.occupation || !formData.location) {
             alert('Please fill in all required fields.');
             return;
         }
@@ -243,6 +235,18 @@ function setupFormHandlers() {
             return;
         }
         
+        // Check if email already exists
+        try {
+            const existingMembers = await Database.getMembers();
+            if (existingMembers.some(member => member.email === formData.email)) {
+                alert('This email is already registered. Please use a different email.');
+                return;
+            }
+        } catch (error) {
+            console.error('Error checking existing members:', error);
+            // Continue with registration even if check fails
+        }
+        
         // Register member
         registerMember(formData);
     });
@@ -250,7 +254,7 @@ function setupFormHandlers() {
     console.log('Form handler setup complete');
 }
 
-// Updated registerMember function
+// Register member
 async function registerMember(memberData) {
     try {
         console.log('Registering member:', memberData);
@@ -267,17 +271,24 @@ async function registerMember(memberData) {
             // Reset form
             document.getElementById('registrationForm').reset();
             
+            // Refresh the views
+            await loadChurchGroups();
+            
         } else {
-            throw new Error('Failed to register member');
+            throw new Error('Failed to register member - no data returned');
         }
         
     } catch (error) {
         console.error('Error registering member:', error);
-        alert('Error registering member. Please try again.');
+        if (error.message.includes('duplicate key') || error.message.includes('already exists')) {
+            alert('This email is already registered. Please use a different email.');
+        } else {
+            alert('Error registering member. Please try again.');
+        }
     }
 }
 
-// Temporary debug function - add this to app.js
+// Debug function
 async function debugInviters() {
     console.log('=== DEBUG: Checking database inviters ===');
     try {
@@ -285,40 +296,33 @@ async function debugInviters() {
         console.log('Total inviters in database:', inviters.length);
         console.log('Inviters details:', inviters);
         
+        const members = await Database.getMembers();
+        console.log('Total members in database:', members.length);
+        
         // Check what's in the dropdown
         const inviterSelect = document.getElementById('inviterName');
-        console.log('Dropdown options:', {
-            selectedValue: inviterSelect.value,
-            options: Array.from(inviterSelect.options).map(opt => ({
-                value: opt.value,
-                text: opt.text,
-                selected: opt.selected
-            }))
-        });
+        if (inviterSelect) {
+            console.log('Dropdown options:', {
+                selectedValue: inviterSelect.value,
+                options: Array.from(inviterSelect.options).map(opt => ({
+                    value: opt.value,
+                    text: opt.text,
+                    selected: opt.selected
+                }))
+            });
+        }
         
     } catch (error) {
         console.error('Debug error:', error);
     }
 }
 
-// Run debug when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    // ... your existing initialization code ...
-    
-    // Run debug after a short delay
-    setTimeout(debugInviters, 1000);
-});
-
-
-// Refresh inviters list when coming back to the page
+// Refresh data when coming back to the page
 window.addEventListener('pageshow', function() {
-    inviters = JSON.parse(localStorage.getItem('inviters')) || [];
-    members = JSON.parse(localStorage.getItem('members')) || [];
     populateInviterDropdown();
     loadChurchGroups();
-
 });
 
-
-
-
+// Make functions globally available for HTML onclick events
+window.showSuccessModal = showSuccessModal;
+window.closeModal = closeModal;
