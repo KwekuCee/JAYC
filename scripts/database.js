@@ -16,6 +16,22 @@ try {
     window.supabase = null;
 }
 
+// Add this to database.js after the supabase initialization
+console.log('=== SUPABASE DEBUG INFO ===');
+console.log('Supabase URL:', SUPABASE_URL);
+console.log('Supabase Key Length:', SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.length : 'No key');
+console.log('Window.supabase exists:', !!window.supabase);
+console.log('Supabase client created:', !!supabase);
+
+// Test the connection
+if (supabase) {
+    supabase.from('inviters').select('count').then(result => {
+        console.log('Supabase connection test:', result.error ? 'FAILED: ' + result.error.message : 'SUCCESS');
+    }).catch(error => {
+        console.log('Supabase connection test failed completely:', error);
+    });
+}
+
 class Database {
     static async registerInviter(inviterData) {
         console.log('Database.registerInviter called with:', inviterData);
