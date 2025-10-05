@@ -269,21 +269,16 @@ body {
     background: rgba(255, 255, 255, 0.05);
 }
 
-.sidebar-logo {
-    height: 40px;
-    width: auto;
-    border-radius: 6px;
-}
-
 .sidebar-brand {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.sidebar-brand i {
-    font-size: 24px;
-    color: var(--success);
+.sidebar-logo {
+    height: 32px;
+    width: auto;
+    border-radius: 6px;
 }
 
 .sidebar-brand h1 {
@@ -370,6 +365,23 @@ body {
     display: flex;
     gap: 12px;
     align-items: center;
+}
+
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.mobile-menu-btn:hover {
+    background: var(--secondary);
 }
 
 /* Stats Overview - Perfectly Sized */
@@ -473,6 +485,15 @@ body {
     padding: 24px;
     max-height: 400px;
     overflow-y: auto;
+}
+
+/* Admin Sections */
+.admin-section {
+    display: none;
+}
+
+.admin-section.active {
+    display: block;
 }
 
 /* Distribution Chart */
@@ -666,116 +687,6 @@ body {
     width: 100%;
 }
 
-/* Modal Styles */
-.edit-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    z-index: 2000;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.edit-modal-content {
-    background: var(--white);
-    padding: 32px;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-    animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes modalSlideIn {
-    from { 
-        opacity: 0; 
-        transform: scale(0.9) translateY(-20px); 
-    }
-    to { 
-        opacity: 1; 
-        transform: scale(1) translateY(0); 
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.modal-header h3 {
-    color: var(--dark);
-    margin: 0;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: var(--gray);
-    padding: 4px;
-    border-radius: 6px;
-    transition: var(--transition);
-}
-
-.close-modal:hover {
-    color: var(--dark);
-    background: #f8f9fa;
-}
-
-.modal-form .form-group {
-    margin-bottom: 20px;
-}
-
-.modal-form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: var(--dark);
-    font-size: 13px;
-}
-
-.modal-form input,
-.modal-form select {
-    width: 100%;
-    padding: 14px 16px;
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    font-size: 14px;
-    transition: var(--transition);
-    background: var(--white);
-    font-family: inherit;
-}
-
-.modal-form input:focus,
-.modal-form select:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.15);
-}
-
-.modal-actions {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
-}
-
-.modal-actions .btn {
-    flex: 1;
-}
-
 /* Empty States */
 .empty-state {
     text-align: center;
@@ -817,21 +728,12 @@ body {
     background: var(--secondary);
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .admin-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-overview {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
+/* ===== ADMIN MOBILE RESPONSIVENESS ===== */
 @media (max-width: 768px) {
     .admin-sidebar {
         transform: translateX(-100%);
         transition: transform 0.3s ease;
+        width: 280px;
     }
     
     .admin-sidebar.mobile-open {
@@ -842,48 +744,23 @@ body {
         margin-left: 0;
     }
     
-    .stats-overview {
-        grid-template-columns: 1fr;
-        padding: 20px;
-        gap: 16px;
-    }
-    
-    .admin-content {
-        padding: 0 20px 20px;
-        gap: 16px;
+    /* Mobile Menu Button */
+    .mobile-menu-btn {
+        display: flex !important;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
     }
     
     .admin-header {
-        padding: 16px 20px;
-    }
-    
-    .stat-card {
-        padding: 20px;
-    }
-    
-    .card-body {
-        padding: 20px;
-    }
-    
-    .management-table {
-        font-size: 12px;
-    }
-    
-    .management-table th,
-    .management-table td {
-        padding: 12px 8px;
-    }
-}
-
-@media (max-width: 480px) {
-    .login-card {
-        padding: 32px 24px;
-        margin: 16px;
+        padding: 1rem 1.5rem;
+        padding-left: 70px;
     }
     
     .admin-header-content {
         flex-direction: column;
-        gap: 12px;
+        gap: 1rem;
         align-items: flex-start;
     }
     
@@ -892,10 +769,44 @@ body {
         justify-content: space-between;
     }
     
+    .stats-overview {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+        gap: 1rem;
+    }
+    
+    .admin-content {
+        grid-template-columns: 1fr;
+        padding: 0 1.5rem 1.5rem;
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+        max-height: none;
+        overflow-x: auto;
+    }
+    
+    /* Table responsiveness */
+    .management-table {
+        font-size: 12px;
+        min-width: 600px;
+    }
+    
+    .management-table th,
+    .management-table td {
+        padding: 12px 8px;
+    }
+    
+    /* File items */
     .file-item {
         flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
+        gap: 1rem;
     }
     
     .file-actions {
@@ -904,31 +815,46 @@ body {
     }
 }
 
-/* Loading Animation */
-.loading {
-    opacity: 0.6;
-    pointer-events: none;
-    position: relative;
-}
-
-.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 20px;
-    height: 20px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid var(--primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-left: -10px;
-    margin-top: -10px;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+@media (max-width: 480px) {
+    .login-card {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+    }
+    
+    .admin-header {
+        padding: 1rem;
+        padding-left: 60px;
+    }
+    
+    .stats-overview {
+        padding: 1rem;
+    }
+    
+    .admin-content {
+        padding: 0 1rem 1rem;
+    }
+    
+    .admin-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .admin-actions .btn {
+        width: 100%;
+    }
+    
+    /* Button groups */
+    .file-actions {
+        flex-direction: column;
+    }
+    
+    .file-actions .btn {
+        width: 100%;
+    }
+    
+    .export-options .btn {
+        width: 100%;
+    }
 }
 
 /* Notification System */
@@ -1003,154 +929,4 @@ body {
         transform: translateX(100%); 
         opacity: 0; 
     }
-
-}
-
-/* ===== ADMIN MOBILE RESPONSIVENESS ===== */
-
-@media (max-width: 768px) {
-    .admin-sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        width: 280px;
-    }
-    
-    .admin-sidebar.mobile-open {
-        transform: translateX(0);
-    }
-    
-    .admin-main {
-        margin-left: 0;
-    }
-    
-    /* Mobile Menu Button */
-    .mobile-menu-btn {
-        display: flex !important;
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 1001;
-        background: var(--primary);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 10px;
-        font-size: 1.2rem;
-    }
-    
-    .admin-header {
-        padding: 1rem 1.5rem;
-    }
-    
-    .admin-header-content {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: flex-start;
-    }
-    
-    .admin-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
-    
-    .stats-overview {
-        grid-template-columns: 1fr;
-        padding: 1.5rem;
-        gap: 1rem;
-    }
-    
-    .admin-content {
-        grid-template-columns: 1fr;
-        padding: 0 1.5rem 1.5rem;
-        gap: 1rem;
-    }
-    
-    .stat-card {
-        padding: 1.5rem;
-    }
-    
-    .card-body {
-        padding: 1.5rem;
-        max-height: none;
-        overflow-x: auto;
-    }
-    
-    /* Table responsiveness */
-    .management-table {
-        font-size: 12px;
-        min-width: 600px; /* Allow horizontal scroll */
-    }
-    
-    .management-table th,
-    .management-table td {
-        padding: 12px 8px;
-    }
-    
-    /* File items */
-    .file-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    
-    .file-actions {
-        width: 100%;
-        justify-content: flex-end;
-    }
-    
-    /* Modal fixes */
-    .edit-modal-content {
-        margin: 10px;
-        padding: 1.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .login-card {
-        padding: 2rem 1.5rem;
-        margin: 1rem;
-    }
-    
-    .admin-header {
-        padding: 1rem;
-    }
-    
-    .stats-overview {
-        padding: 1rem;
-    }
-    
-    .admin-content {
-        padding: 0 1rem 1rem;
-    }
-    
-    .admin-actions {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .admin-actions .btn {
-        width: 100%;
-    }
-    
-    /* Button groups */
-    .file-actions {
-        flex-direction: column;
-    }
-    
-    .file-actions .btn {
-        width: 100%;
-    }
-    
-    .modal-actions {
-        flex-direction: column;
-    }
-    
-    .modal-actions .btn {
-        width: 100%;
-    }
-}
-
-/* Add mobile menu button to admin header */
-.mobile-menu-btn {
-    display: none;
 }
