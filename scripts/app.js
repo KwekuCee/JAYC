@@ -277,6 +277,37 @@ async function registerMember(memberData) {
     }
 }
 
+// Temporary debug function - add this to app.js
+async function debugInviters() {
+    console.log('=== DEBUG: Checking database inviters ===');
+    try {
+        const inviters = await Database.getInviters();
+        console.log('Total inviters in database:', inviters.length);
+        console.log('Inviters details:', inviters);
+        
+        // Check what's in the dropdown
+        const inviterSelect = document.getElementById('inviterName');
+        console.log('Dropdown options:', {
+            selectedValue: inviterSelect.value,
+            options: Array.from(inviterSelect.options).map(opt => ({
+                value: opt.value,
+                text: opt.text,
+                selected: opt.selected
+            }))
+        });
+        
+    } catch (error) {
+        console.error('Debug error:', error);
+    }
+}
+
+// Run debug when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // ... your existing initialization code ...
+    
+    // Run debug after a short delay
+    setTimeout(debugInviters, 1000);
+});
 
 
 // Refresh inviters list when coming back to the page
@@ -287,6 +318,7 @@ window.addEventListener('pageshow', function() {
     loadChurchGroups();
 
 });
+
 
 
 
