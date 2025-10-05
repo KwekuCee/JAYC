@@ -146,4 +146,4 @@ class Database {
 }
 
 // Make Database class globally available
-window.Database = Database;
+window.supabase = supabase;
