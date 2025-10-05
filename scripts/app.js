@@ -157,7 +157,6 @@ function getMemberCount(inviterName) {
 }
 
 // Setup form handlers
-// Setup form handlers
 function setupFormHandlers() {
     const registrationForm = document.getElementById('registrationForm');
     
@@ -166,38 +165,68 @@ function setupFormHandlers() {
         return;
     }
     
-    registrationForm.addEventListener('submit', function(e) {
+    registrationForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         console.log('Form submitted');
         
-        // Get selected inviter details
-        const inviterSelect = document.getElementById('inviterName');
-        const selectedInviterName = inviterSelect.value;
-        const selectedInviter = inviters.find(inv => inv.fullName === selectedInviterName);
+        // Get selected inviter name
+        const selectedInviterName = document.getElementById('inviterName').value;
         
-        if (!selectedInviter) {
-            alert('Please select a valid inviter.');
+        if (!selectedInviterName) {
+            alert('Please select an inviter.');
             return;
         }
         
-        // Get form values - NO churchName field from form
+        console.log('Selected inviter:', selectedInviterName);
+        
+        // Get church name from the dropdown (if you have one) or from the selected inviter
+        let churchName = '';
+        
+        // If you have a church dropdown, get value from there
+        const churchSelect = document.getElementById('churchName');
+        if (churchSelect) {
+            churchName = churchSelect.value;
+        }
+        
+        // If no church dropdown, we need to get the church from the selected inviter
+        if (!churchName) {
+            try {
+                // Get all inviters to find the selected one's church
+                const inviters = await Database.getInviters();
+                const selectedInviter = inviters.find(inv => inv.full_name === selectedInviterName);
+                
+                if (selectedInviter) {
+                    churchName = selectedInviter.church_name;
+                    console.log('Found church from inviter:', churchName);
+                } else {
+                    // If we can't find the inviter, show error
+                    alert('Selected inviter not found in database. Please refresh the page and try again.');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error getting inviter church:', error);
+                alert('Error getting church information. Please try again.');
+                return;
+            }
+        }
+        
+        // Get form values
         const formData = {
             fullName: document.getElementById('fullName').value.trim(),
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
             occupation: document.getElementById('occupation').value.trim(),
             location: document.getElementById('location').value.trim(),
-            // Auto-populate churchName from selected inviter
-            churchName: document.getElementById('churchName').value, //From dropdown
-            inviterName: document.getElementById('inviterName').value,
+            churchName: churchName,
+            inviterName: selectedInviterName,
             registrationDate: new Date().toISOString()
         };
         
-        console.log('Form data:', formData);
+        console.log('Form data to register:', formData);
         
-        // Validate required fields (no churchName validation needed as it's auto-populated)
+        // Validate required fields
         if (!formData.fullName || !formData.email || !formData.phone || 
-            !formData.occupation || !formData.location || !formData.inviterName) {
+            !formData.occupation || !formData.location || !formData.churchName) {
             alert('Please fill in all required fields.');
             return;
         }
@@ -206,12 +235,6 @@ function setupFormHandlers() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(formData.email)) {
             alert('Please enter a valid email address.');
-            return;
-        }
-        
-        // Check if email already exists
-        if (members.some(member => member.email === formData.email)) {
-            alert('This email is already registered. Please use a different email.');
             return;
         }
         
@@ -259,4 +282,5 @@ window.addEventListener('pageshow', function() {
     loadChurchGroups();
 
 });
+
 
