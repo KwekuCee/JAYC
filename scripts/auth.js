@@ -24,6 +24,32 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Show success modal
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        // Fallback if modal doesn't exist
+        alert('Registration successful! Redirecting...');
+    }
+}
+
+// Close modal
+function closeModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('successModal');
+    if (e.target === modal) {
+        closeModal();
+    }
+});
 // Updated registerInviter function
 async function registerInviter(inviterData) {
     try {
@@ -72,3 +98,4 @@ async function registerInviter(inviterData) {
         }
     }
 }
+
