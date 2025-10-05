@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- In all HTML files, inside <head> -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JAYC Registration</title>
 
-    <!--Favicon-->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="/styles/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -19,7 +18,7 @@
             <div class="header-content">
                <div class="logo">
                     <img src="/images/Logo.png" alt="Church Logo" class="logo-image">
-                    
+                    <span class="logo-text">JAYC Registration</span>
                 </div>
                 <nav class="nav">
                     <button class="nav-btn active" data-tab="registration">Registration</button>
@@ -138,67 +137,51 @@
         </div>
     </div>
 
-    <!-- Add this before your other scripts -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="scripts/database.js"></script>
-    <script src="scripts/app.js"></script>
-    <script>
-// Debug script
-console.log('Page loaded successfully');
-console.log('Inviter count:', JSON.parse(localStorage.getItem('inviters') || '[]').length);
-console.log('Member count:', JSON.parse(localStorage.getItem('members') || '[]').length);
-
-// Check if form exists
-const form = document.getElementById('registrationForm');
-console.log('Form found:', !!form);
-
-// Check if inviter dropdown is populated
-const inviterSelect = document.getElementById('inviterName');
-console.log('Inviter select options:', inviterSelect ? inviterSelect.options.length : 'not found');
-</script>
-    <script>
-// Test function - add this temporarily
-async function testSupabase() {
-    console.log('Testing Supabase connection...');
+    <script src="/scripts/database.js"></script>
+    <script src="/scripts/app.js"></script>
     
-    try {
-        // Test 1: Check if we can query inviters table
-        const { data, error } = await supabase.from('inviters').select('count');
-        console.log('Table access test:', error ? 'FAILED: ' + error.message : 'SUCCESS');
-        
-        // Test 2: Try to insert a test record
-        const testData = {
-            full_name: 'Test User',
-            email: 'test@example.com',
-            church_name: 'Test Church'
-        };
-        
-        const { data: insertData, error: insertError } = await supabase
-            .from('inviters')
-            .insert([testData])
-            .select();
+    <script>
+        // Debug script
+        console.log('Page loaded successfully');
+
+        // Check if form exists
+        const form = document.getElementById('registrationForm');
+        console.log('Form found:', !!form);
+
+        // Check if inviter dropdown is populated
+        const inviterSelect = document.getElementById('inviterName');
+        console.log('Inviter select options:', inviterSelect ? inviterSelect.options.length : 'not found');
+
+        // Enhanced Supabase test function
+        async function testSupabase() {
+            console.log('Testing Supabase connection...');
             
-        console.log('Insert test:', insertError ? 'FAILED: ' + insertError.message : 'SUCCESS');
-        
-        if (!insertError) {
-            // Clean up test data
-            await supabase.from('inviters').delete().eq('email', 'test@example.com');
+            try {
+                // Test 1: Check if we can query inviters table
+                const { data, error } = await supabase.from('inviters').select('count');
+                console.log('Table access test:', error ? 'FAILED: ' + error.message : 'SUCCESS');
+                
+                if (!error) {
+                    // Test 2: Get actual inviters to verify data
+                    const { data: inviters, error: invitersError } = await supabase
+                        .from('inviters')
+                        .select('*')
+                        .limit(5);
+                    
+                    console.log('Inviters in database:', invitersError ? 'ERROR: ' + invitersError.message : inviters);
+                }
+                
+            } catch (error) {
+                console.error('Supabase test failed completely:', error);
+            }
         }
-        
-    } catch (error) {
-        console.error('Supabase test failed completely:', error);
-    }
-}
 
-// Run test when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(testSupabase, 1000);
-});
-</script>
+        // Run test when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(testSupabase, 1000);
+        });
+    </script>
 </body>
-
 </html>
-
-
-
-
