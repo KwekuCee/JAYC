@@ -45,11 +45,12 @@ function showAdminDashboard() {
 // Load admin data
 async function loadAdminData() {
     try {
+        console.log('Loading admin data from Supabase...');
         const members = await Database.getMembers();
         const inviters = await Database.getInviters();
         
-        console.log('Members data:', members);
-        console.log('Inviters data:', inviters);
+        console.log('Loaded members:', members);
+        console.log('Loaded inviters:', inviters);
         
         updateStats(members, inviters);
         loadChurchDistribution(members);
@@ -60,9 +61,11 @@ async function loadAdminData() {
         
         setupSearch();
         
+        showNotification('Admin data loaded successfully!', 'success');
+        
     } catch (error) {
         console.error('Error loading admin data:', error);
-        showNotification('Error loading data', 'error');
+        showNotification('Error loading data: ' + error.message, 'error');
     }
 }
 
@@ -391,7 +394,67 @@ function loadFilteredMembers(members) {
     `;
 }
 
-// Edit inviter - WORKING VERSION
+// REAL Delete inviter function
+async function deleteInviter(email) {
+    if (!confirm('Are you sure you want to delete this inviter? This will remove them from the database permanently.')) {
+        return;
+    }
+    
+    try {
+        // Delete from Supabase
+        const { error } = await supabase
+            .from('inviters')
+            .delete()
+            .eq('email', email);
+        
+        if (error) {
+            throw error;
+        }
+        
+        showNotification('Inviter deleted successfully!', 'success');
+        
+        // Refresh the data to show the change
+        setTimeout(() => {
+            loadAdminData();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error deleting inviter:', error);
+        showNotification('Error deleting inviter: ' + error.message, 'error');
+    }
+}
+
+// REAL Delete member function
+async function deleteMember(email) {
+    if (!confirm('Are you sure you want to delete this member? This will remove them from the database permanently.')) {
+        return;
+    }
+    
+    try {
+        // Delete from Supabase
+        const { error } = await supabase
+            .from('members')
+            .delete()
+            .eq('email', email);
+        
+        if (error) {
+            throw error;
+        }
+        
+        showNotification('Member deleted successfully!', 'success');
+        
+        // Refresh the data to show the change
+        setTimeout(() => {
+            loadAdminData();
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Error deleting member:', error);
+        showNotification('Error deleting member: ' + error.message, 'error');
+    }
+}
+
+// REAL Edit inviter function
 async function editInviter(email) {
     try {
         const inviters = await Database.getInviters();
@@ -404,17 +467,30 @@ async function editInviter(email) {
         
         const newName = prompt('Enter new name for inviter:', inviter.full_name);
         if (newName && newName.trim() !== '') {
-            // In a real implementation, you would update in Supabase
-            // For now, we'll show a success message
-            showNotification(`Inviter "${inviter.full_name}" would be updated to "${newName}" (Supabase update required)`, 'info');
+            // Update in Supabase
+            const { error } = await supabase
+                .from('inviters')
+                .update({ full_name: newName.trim() })
+                .eq('email', email);
+            
+            if (error) {
+                throw error;
+            }
+            
+            showNotification('Inviter updated successfully!', 'success');
+            
+            // Refresh the data to show the change
+            setTimeout(() => {
+                loadAdminData();
+            }, 1000);
         }
     } catch (error) {
         console.error('Error editing inviter:', error);
-        showNotification('Error editing inviter', 'error');
+        showNotification('Error editing inviter: ' + error.message, 'error');
     }
 }
 
-// Edit member - WORKING VERSION
+// REAL Edit member function
 async function editMember(email) {
     try {
         const members = await Database.getMembers();
@@ -427,67 +503,26 @@ async function editMember(email) {
         
         const newName = prompt('Enter new name for member:', member.full_name);
         if (newName && newName.trim() !== '') {
-            // In a real implementation, you would update in Supabase
-            // For now, we'll show a success message
-            showNotification(`Member "${member.full_name}" would be updated to "${newName}" (Supabase update required)`, 'info');
+            // Update in Supabase
+            const { error } = await supabase
+                .from('members')
+                .update({ full_name: newName.trim() })
+                .eq('email', email);
+            
+            if (error) {
+                throw error;
+            }
+            
+            showNotification('Member updated successfully!', 'success');
+            
+            // Refresh the data to show the change
+            setTimeout(() => {
+                loadAdminData();
+            }, 1000);
         }
     } catch (error) {
         console.error('Error editing member:', error);
-        showNotification('Error editing member', 'error');
-    }
-}
-
-// Delete inviter - WORKING VERSION
-async function deleteInviter(email) {
-    if (!confirm('Are you sure you want to delete this inviter? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        const inviters = await Database.getInviters();
-        const inviter = inviters.find(inv => inv.email === email);
-        
-        if (!inviter) {
-            showNotification('Inviter not found', 'error');
-            return;
-        }
-        
-        // In a real implementation, you would delete from Supabase
-        // For now, we'll show a success message
-        showNotification(`Inviter "${inviter.full_name}" would be deleted (Supabase delete required)`, 'info');
-        
-        // Refresh the data to show the change
-        loadAdminData();
-    } catch (error) {
-        console.error('Error deleting inviter:', error);
-        showNotification('Error deleting inviter', 'error');
-    }
-}
-
-// Delete member - WORKING VERSION
-async function deleteMember(email) {
-    if (!confirm('Are you sure you want to delete this member? This action cannot be undone.')) {
-        return;
-    }
-    
-    try {
-        const members = await Database.getMembers();
-        const member = members.find(mem => mem.email === email);
-        
-        if (!member) {
-            showNotification('Member not found', 'error');
-            return;
-        }
-        
-        // In a real implementation, you would delete from Supabase
-        // For now, we'll show a success message
-        showNotification(`Member "${member.full_name}" would be deleted (Supabase delete required)`, 'info');
-        
-        // Refresh the data to show the change
-        loadAdminData();
-    } catch (error) {
-        console.error('Error deleting member:', error);
-        showNotification('Error deleting member', 'error');
+        showNotification('Error editing member: ' + error.message, 'error');
     }
 }
 
