@@ -13,8 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
             registrationDate: new Date().toISOString()
         };
         
-        // Validate authentication code (in real app, this would be server-side)
-        if (formData.authCode !== 'CHURCH2024') { // Default code
+        // Validate authentication code
+        if (formData.authCode !== 'CHURCH2024') {
             alert('Invalid authentication code. Please contact admin.');
             return;
         }
@@ -24,49 +24,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Show success modal
-function showSuccessModal() {
-    const modal = document.getElementById('successModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    } else {
-        // Fallback if modal doesn't exist
-        alert('Registration successful! Redirecting...');
-    }
-}
-
-// Close modal
-function closeModal() {
-    const modal = document.getElementById('successModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Close modal when clicking outside
-window.addEventListener('click', function(e) {
-    const modal = document.getElementById('successModal');
-    if (e.target === modal) {
-        closeModal();
-    }
-});
-// Updated registerInviter function
 async function registerInviter(inviterData) {
     try {
         console.log('Starting inviter registration:', inviterData);
         
-        // Validate authentication code
-        if (inviterData.authCode !== 'CHURCH2024') {
-            alert('Invalid authentication code. Please contact admin.');
-            return;
-        }
-        
-        // Prepare data for database (remove authCode)
+        // Prepare data for database
         const dbData = {
             full_name: inviterData.fullName,
             email: inviterData.email,
             church_name: inviterData.churchName
-            // registration_date is auto-added by database
         };
         
         console.log('Sending to database:', dbData);
@@ -86,16 +52,34 @@ async function registerInviter(inviterData) {
         }
         
     } catch (error) {
-        console.error('Registration error details:', error);
-        
-        // Show specific error messages
-        if (error.message.includes('duplicate key') || error.message.includes('already exists')) {
-            alert('An inviter with this email already exists. Please use a different email.');
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-            alert('Network error. Please check your internet connection and try again.');
-        } else {
-            alert('Error registering inviter: ' + error.message);
-        }
+        console.error('Registration error:', error);
+        alert('Error registering inviter: ' + error.message);
     }
 }
 
+// Modal functions for signup page
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        alert('Registration successful! Redirecting...');
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    // Redirect immediately when modal is closed
+    window.location.href = 'index.html';
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('successModal');
+    if (e.target === modal) {
+        closeModal();
+    }
+});
