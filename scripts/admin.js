@@ -42,7 +42,7 @@ function showAdminDashboard() {
     loadAdminData();
 }
 
-// Updated loadAdminData function
+// Load admin data
 async function loadAdminData() {
     try {
         const members = await Database.getMembers();
@@ -63,39 +63,17 @@ async function loadAdminData() {
     }
 }
 
-// Update all other functions in admin.js to use Database class instead of localStorage
-
-// Get members data
-function getMembers() {
-    return JSON.parse(localStorage.getItem('members')) || [];
-}
-
-// Get inviters data
-function getInviters() {
-    return JSON.parse(localStorage.getItem('inviters')) || [];
-}
-
-// Save members data
-function saveMembers(members) {
-    localStorage.setItem('members', JSON.stringify(members));
-}
-
-// Save inviters data
-function saveInviters(inviters) {
-    localStorage.setItem('inviters', JSON.stringify(inviters));
-}
-
 // Update statistics cards
 function updateStats(members, inviters) {
     document.getElementById('totalMembers').textContent = members.length;
     document.getElementById('totalInviters').textContent = inviters.length;
     
-    const uniqueChurches = new Set(members.map(member => member.churchName));
+    const uniqueChurches = new Set(members.map(member => member.church_name));
     document.getElementById('totalChurches').textContent = uniqueChurches.size;
     
     const today = new Date().toDateString();
     const todayRegistrations = members.filter(member => 
-        new Date(member.registrationDate).toDateString() === today
+        new Date(member.registration_date).toDateString() === today
     );
     document.getElementById('todayRegistrations').textContent = todayRegistrations.length;
 }
@@ -106,10 +84,10 @@ function loadChurchDistribution(members) {
     
     const churchGroups = {};
     members.forEach(member => {
-        if (!churchGroups[member.churchName]) {
-            churchGroups[member.churchName] = 0;
+        if (!churchGroups[member.church_name]) {
+            churchGroups[member.church_name] = 0;
         }
-        churchGroups[member.churchName]++;
+        churchGroups[member.church_name]++;
     });
     
     if (Object.keys(churchGroups).length === 0) {
@@ -136,7 +114,7 @@ function loadRecentRegistrations(members) {
     const registrationsContainer = document.getElementById('recentRegistrations');
     
     const recentMembers = members
-        .sort((a, b) => new Date(b.registrationDate) - new Date(a.registrationDate))
+        .sort((a, b) => new Date(b.registration_date) - new Date(a.registration_date))
         .slice(0, 10);
     
     if (recentMembers.length === 0) {
@@ -152,18 +130,18 @@ function loadRecentRegistrations(members) {
     registrationsContainer.innerHTML = recentMembers.map(member => `
         <div class="registration-item">
             <div class="registration-info">
-                <h4>${member.fullName}</h4>
-                <p>${member.churchName} • Invited by: ${member.inviterName}</p>
+                <h4>${member.full_name}</h4>
+                <p>${member.church_name} • Invited by: ${member.inviter_name}</p>
             </div>
             <div class="registration-date">
-                ${new Date(member.registrationDate).toLocaleDateString()}
+                ${new Date(member.registration_date).toLocaleDateString()}
             </div>
         </div>
     `).join('');
 }
 
 // Load file management section
-function loadFileManagement(members, inviters) {
+async function loadFileManagement(members, inviters) {
     const fileManagement = document.getElementById('fileManagement');
     
     if (inviters.length === 0) {
@@ -177,17 +155,17 @@ function loadFileManagement(members, inviters) {
     }
     
     fileManagement.innerHTML = inviters.map(inviter => {
-        const inviterMembers = members.filter(member => member.inviterName === inviter.fullName);
+        const inviterMembers = members.filter(member => member.inviter_name === inviter.full_name);
         const memberCount = inviterMembers.length;
         
         return `
             <div class="file-item">
                 <div class="file-info">
-                    <h4>${inviter.fullName}</h4>
-                    <p>${inviter.churchName} • ${memberCount} members registered</p>
+                    <h4>${inviter.full_name}</h4>
+                    <p>${inviter.church_name} • ${memberCount} members registered</p>
                 </div>
                 <div class="file-actions">
-                    <button class="btn btn-download btn-sm" onclick="downloadInviterFile('${inviter.fullName}')">
+                    <button class="btn btn-download btn-sm" onclick="downloadInviterFile('${inviter.full_name}')">
                         <i class="fas fa-download"></i> Download Excel
                     </button>
                 </div>
@@ -197,49 +175,54 @@ function loadFileManagement(members, inviters) {
 }
 
 // Download Excel file for specific inviter
-function downloadInviterFile(inviterName) {
-    const members = getMembers();
-    const inviterMembers = members.filter(member => member.inviterName === inviterName);
-    
-    if (inviterMembers.length === 0) {
-        showNotification('No members found for this inviter!', 'warning');
-        return;
+async function downloadInviterFile(inviterName) {
+    try {
+        const members = await Database.getMembers();
+        const inviterMembers = members.filter(member => member.inviter_name === inviterName);
+        
+        if (inviterMembers.length === 0) {
+            showNotification('No members found for this inviter!', 'warning');
+            return;
+        }
+        
+        // Create Excel data
+        const excelData = [
+            ['Full Name', 'Email', 'Phone', 'Occupation', 'Location', 'Church', 'Registration Date'],
+            ...inviterMembers.map(member => [
+                member.full_name,
+                member.email,
+                member.phone,
+                member.occupation,
+                member.location,
+                member.church_name,
+                new Date(member.registration_date).toLocaleDateString()
+            ])
+        ];
+        
+        // Create CSV content
+        const csvContent = excelData.map(row => 
+            row.map(field => `"${field}"`).join(',')
+        ).join('\n');
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        const fileName = `${inviterName.replace(/\s+/g, '_')}_Members_${new Date().toISOString().split('T')[0]}.csv`;
+        
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showNotification(`Excel file downloaded for ${inviterName}`, 'success');
+    } catch (error) {
+        console.error('Error downloading file:', error);
+        showNotification('Error downloading file', 'error');
     }
-    
-    // Create Excel data
-    const excelData = [
-        ['Full Name', 'Email', 'Phone', 'Occupation', 'Location', 'Church', 'Registration Date'],
-        ...inviterMembers.map(member => [
-            member.fullName,
-            member.email,
-            member.phone,
-            member.occupation,
-            member.location,
-            member.churchName,
-            new Date(member.registrationDate).toLocaleDateString()
-        ])
-    ];
-    
-    // Create CSV content
-    const csvContent = excelData.map(row => 
-        row.map(field => `"${field}"`).join(',')
-    ).join('\n');
-    
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
-    const fileName = `${inviterName.replace(/\s+/g, '_')}_Members_${new Date().toISOString().split('T')[0]}.csv`;
-    
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showNotification(`Excel file downloaded for ${inviterName}`, 'success');
 }
 
 // Load inviters management section
@@ -270,10 +253,10 @@ function loadInvitersManagement(inviters) {
             <tbody>
                 ${inviters.map(inviter => `
                     <tr>
-                        <td>${inviter.fullName}</td>
+                        <td>${inviter.full_name}</td>
                         <td>${inviter.email}</td>
-                        <td>${inviter.churchName}</td>
-                        <td>${new Date(inviter.registrationDate).toLocaleDateString()}</td>
+                        <td>${inviter.church_name}</td>
+                        <td>${new Date(inviter.registration_date).toLocaleDateString()}</td>
                         <td>
                             <button class="btn btn-edit btn-sm" onclick="editInviter('${inviter.email}')">
                                 <i class="fas fa-edit"></i> Edit
@@ -318,11 +301,11 @@ function loadMembersManagement(members) {
             <tbody>
                 ${members.map(member => `
                     <tr>
-                        <td>${member.fullName}</td>
+                        <td>${member.full_name}</td>
                         <td>${member.email}</td>
                         <td>${member.phone}</td>
-                        <td>${member.churchName}</td>
-                        <td>${member.inviterName}</td>
+                        <td>${member.church_name}</td>
+                        <td>${member.inviter_name}</td>
                         <td>
                             <button class="btn btn-edit btn-sm" onclick="editMember('${member.email}')">
                                 <i class="fas fa-edit"></i> Edit
@@ -341,15 +324,15 @@ function loadMembersManagement(members) {
 // Setup search functionality
 function setupSearch() {
     const searchInput = document.getElementById('memberSearch');
-    searchInput.addEventListener('input', function(e) {
+    searchInput.addEventListener('input', async function(e) {
         const searchTerm = e.target.value.toLowerCase();
-        const members = getMembers();
+        const members = await Database.getMembers();
         
         const filteredMembers = members.filter(member => 
-            member.fullName.toLowerCase().includes(searchTerm) ||
+            member.full_name.toLowerCase().includes(searchTerm) ||
             member.email.toLowerCase().includes(searchTerm) ||
-            member.churchName.toLowerCase().includes(searchTerm) ||
-            member.inviterName.toLowerCase().includes(searchTerm)
+            member.church_name.toLowerCase().includes(searchTerm) ||
+            member.inviter_name.toLowerCase().includes(searchTerm)
         );
         
         loadFilteredMembers(filteredMembers);
@@ -385,11 +368,11 @@ function loadFilteredMembers(members) {
             <tbody>
                 ${members.map(member => `
                     <tr>
-                        <td>${member.fullName}</td>
+                        <td>${member.full_name}</td>
                         <td>${member.email}</td>
                         <td>${member.phone}</td>
-                        <td>${member.churchName}</td>
-                        <td>${member.inviterName}</td>
+                        <td>${member.church_name}</td>
+                        <td>${member.inviter_name}</td>
                         <td>
                             <button class="btn btn-edit btn-sm" onclick="editMember('${member.email}')">
                                 <i class="fas fa-edit"></i> Edit
@@ -406,313 +389,233 @@ function loadFilteredMembers(members) {
 }
 
 // Edit inviter
-function editInviter(email) {
-    const inviters = getInviters();
-    const inviter = inviters.find(inv => inv.email === email);
-    
-    if (!inviter) return;
-    
-    // Create edit modal
-    const modal = createEditModal('inviter', inviter);
-    document.body.appendChild(modal);
-    showModal(modal);
+async function editInviter(email) {
+    try {
+        const inviters = await Database.getInviters();
+        const inviter = inviters.find(inv => inv.email === email);
+        
+        if (!inviter) {
+            showNotification('Inviter not found', 'error');
+            return;
+        }
+        
+        showNotification('Edit functionality coming soon!', 'info');
+    } catch (error) {
+        console.error('Error editing inviter:', error);
+        showNotification('Error editing inviter', 'error');
+    }
 }
 
 // Edit member
-function editMember(email) {
-    const members = getMembers();
-    const member = members.find(mem => mem.email === email);
-    
-    if (!member) return;
-    
-    const modal = createEditModal('member', member);
-    document.body.appendChild(modal);
-    showModal(modal);
-}
-
-// Create edit modal
-function createEditModal(type, data) {
-    const modal = document.createElement('div');
-    modal.className = 'edit-modal';
-    modal.id = `edit${type.charAt(0).toUpperCase() + type.slice(1)}Modal`;
-    
-    const isInviter = type === 'inviter';
-    
-    modal.innerHTML = `
-        <div class="edit-modal-content">
-            <div class="modal-header">
-                <h3>Edit ${isInviter ? 'Inviter' : 'Member'}</h3>
-                <button class="close-modal" onclick="closeModal(this)">&times;</button>
-            </div>
-            <form class="modal-form" onsubmit="handle${isInviter ? 'Inviter' : 'Member'}Edit(event, '${data.email}')">
-                <div class="form-group">
-                    <label for="editFullName">Full Name</label>
-                    <input type="text" id="editFullName" value="${data.fullName}" required>
-                </div>
-                <div class="form-group">
-                    <label for="editEmail">Email</label>
-                    <input type="email" id="editEmail" value="${data.email}" required>
-                </div>
-                ${isInviter ? `
-                    <div class="form-group">
-                        <label for="editChurch">Church Name</label>
-                        <input type="text" id="editChurch" value="${data.churchName}" required>
-                    </div>
-                ` : `
-                    <div class="form-group">
-                        <label for="editPhone">Phone</label>
-                        <input type="tel" id="editPhone" value="${data.phone}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editOccupation">Occupation</label>
-                        <input type="text" id="editOccupation" value="${data.occupation}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editLocation">Location</label>
-                        <input type="text" id="editLocation" value="${data.location}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editChurchName">Church Name</label>
-                        <input type="text" id="editChurchName" value="${data.churchName}" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editInviterName">Inviter Name</label>
-                        <input type="text" id="editInviterName" value="${data.inviterName}" required>
-                    </div>
-                `}
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal(this)">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    `;
-    
-    return modal;
-}
-
-// Handle inviter edit
-function handleInviterEdit(event, oldEmail) {
-    event.preventDefault();
-    
-    const inviters = getInviters();
-    const inviterIndex = inviters.findIndex(inv => inv.email === oldEmail);
-    
-    if (inviterIndex === -1) return;
-    
-    const updatedInviter = {
-        ...inviters[inviterIndex],
-        fullName: document.getElementById('editFullName').value,
-        email: document.getElementById('editEmail').value,
-        churchName: document.getElementById('editChurch').value
-    };
-    
-    // Update members if inviter name changed
-    if (inviters[inviterIndex].fullName !== updatedInviter.fullName) {
-        updateMembersInviterName(inviters[inviterIndex].fullName, updatedInviter.fullName);
+async function editMember(email) {
+    try {
+        const members = await Database.getMembers();
+        const member = members.find(mem => mem.email === email);
+        
+        if (!member) {
+            showNotification('Member not found', 'error');
+            return;
+        }
+        
+        showNotification('Edit functionality coming soon!', 'info');
+    } catch (error) {
+        console.error('Error editing member:', error);
+        showNotification('Error editing member', 'error');
     }
-    
-    inviters[inviterIndex] = updatedInviter;
-    saveInviters(inviters);
-    
-    closeModal(event.target);
-    loadAdminData();
-    showNotification('Inviter updated successfully!', 'success');
-}
-
-// Handle member edit
-function handleMemberEdit(event, oldEmail) {
-    event.preventDefault();
-    
-    const members = getMembers();
-    const memberIndex = members.findIndex(mem => mem.email === oldEmail);
-    
-    if (memberIndex === -1) return;
-    
-    members[memberIndex] = {
-        ...members[memberIndex],
-        fullName: document.getElementById('editFullName').value,
-        email: document.getElementById('editEmail').value,
-        phone: document.getElementById('editPhone').value,
-        occupation: document.getElementById('editOccupation').value,
-        location: document.getElementById('editLocation').value,
-        churchName: document.getElementById('editChurchName').value,
-        inviterName: document.getElementById('editInviterName').value
-    };
-    
-    saveMembers(members);
-    
-    closeModal(event.target);
-    loadAdminData();
-    showNotification('Member updated successfully!', 'success');
-}
-
-// Update members when inviter name changes
-function updateMembersInviterName(oldName, newName) {
-    const members = getMembers();
-    const updatedMembers = members.map(member => 
-        member.inviterName === oldName 
-            ? { ...member, inviterName: newName }
-            : member
-    );
-    saveMembers(updatedMembers);
 }
 
 // Delete inviter
-function deleteInviter(email) {
-    if (!confirm('Are you sure you want to delete this inviter? This will also remove them from all associated members.')) {
+async function deleteInviter(email) {
+    if (!confirm('Are you sure you want to delete this inviter? This action cannot be undone.')) {
         return;
     }
     
-    const inviters = getInviters();
-    const inviter = inviters.find(inv => inv.email === email);
-    
-    if (!inviter) return;
-    
-    // Remove inviter from members
-    const members = getMembers();
-    const updatedMembers = members.map(member => 
-        member.inviterName === inviter.fullName 
-            ? { ...member, inviterName: 'Unknown' }
-            : member
-    );
-    saveMembers(updatedMembers);
-    
-    // Remove inviter
-    const updatedInviters = inviters.filter(inv => inv.email !== email);
-    saveInviters(updatedInviters);
-    
-    loadAdminData();
-    showNotification('Inviter deleted successfully!', 'success');
+    try {
+        showNotification('Delete functionality coming soon!', 'info');
+    } catch (error) {
+        console.error('Error deleting inviter:', error);
+        showNotification('Error deleting inviter', 'error');
+    }
 }
 
 // Delete member
-function deleteMember(email) {
-    if (!confirm('Are you sure you want to delete this member?')) {
+async function deleteMember(email) {
+    if (!confirm('Are you sure you want to delete this member? This action cannot be undone.')) {
         return;
     }
     
-    const members = getMembers();
-    const updatedMembers = members.filter(member => member.email !== email);
-    saveMembers(updatedMembers);
-    
-    loadAdminData();
-    showNotification('Member deleted successfully!', 'success');
-}
-
-// Modal functions
-function showModal(modal) {
-    modal.style.display = 'flex';
-}
-
-function closeModal(element) {
-    const modal = element.closest('.edit-modal');
-    if (modal) {
-        modal.remove();
+    try {
+        showNotification('Delete functionality coming soon!', 'info');
+    } catch (error) {
+        console.error('Error deleting member:', error);
+        showNotification('Error deleting member', 'error');
     }
+}
+
+// Section navigation
+function showSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.admin-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Remove active class from all sidebar items
+    document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    
+    // Show selected section
+    document.getElementById(sectionId).classList.add('active');
+    
+    // Add active class to clicked sidebar item
+    event.target.classList.add('active');
+    
+    // Update section title
+    const sectionTitles = {
+        overview: 'Dashboard Overview',
+        files: 'File Management',
+        inviters: 'Manage Inviters',
+        members: 'Manage Members',
+        exports: 'Data Export'
+    };
+    
+    const sectionDescriptions = {
+        overview: 'Real-time statistics and analytics',
+        files: 'Download Excel files for each inviter',
+        inviters: 'Manage registered inviters',
+        members: 'Manage all member registrations',
+        exports: 'Export complete datasets'
+    };
+    
+    document.getElementById('sectionTitle').textContent = sectionTitles[sectionId] || 'Admin Panel';
+    document.getElementById('sectionDescription').textContent = sectionDescriptions[sectionId] || 'Management dashboard';
 }
 
 // Refresh data
-function refreshData() {
-    const refreshBtn = event.target.closest('.btn');
-    const originalHtml = refreshBtn.innerHTML;
+async function refreshData() {
+    const refreshBtn = event?.target?.closest('.btn');
     
-    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
-    refreshBtn.disabled = true;
-    
-    setTimeout(() => {
-        loadAdminData();
-        refreshBtn.innerHTML = originalHtml;
-        refreshBtn.disabled = false;
+    if (refreshBtn) {
+        const originalHtml = refreshBtn.innerHTML;
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        refreshBtn.disabled = true;
+        
+        try {
+            await loadAdminData();
+            showNotification('Data refreshed successfully!', 'success');
+        } catch (error) {
+            showNotification('Error refreshing data', 'error');
+        } finally {
+            refreshBtn.innerHTML = originalHtml;
+            refreshBtn.disabled = false;
+        }
+    } else {
+        // Fallback if no button context
+        await loadAdminData();
         showNotification('Data refreshed successfully!', 'success');
-    }, 1000);
+    }
 }
 
 // Export all data
-function exportAllData() {
-    const members = getMembers();
-    
-    if (members.length === 0) {
-        showNotification('No data to export!', 'warning');
-        return;
+async function exportAllData() {
+    try {
+        const members = await Database.getMembers();
+        
+        if (members.length === 0) {
+            showNotification('No data to export!', 'warning');
+            return;
+        }
+        
+        const excelData = [
+            ['Full Name', 'Email', 'Phone', 'Occupation', 'Location', 'Church', 'Inviter', 'Registration Date'],
+            ...members.map(member => [
+                member.full_name,
+                member.email,
+                member.phone,
+                member.occupation,
+                member.location,
+                member.church_name,
+                member.inviter_name,
+                new Date(member.registration_date).toLocaleDateString()
+            ])
+        ];
+        
+        const csvContent = excelData.map(row => 
+            row.map(field => `"${field}"`).join(',')
+        ).join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        const fileName = `JAYC_All_Data_${new Date().toISOString().split('T')[0]}.csv`;
+        
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showNotification('All data exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting data:', error);
+        showNotification('Error exporting data', 'error');
     }
-    
-    const excelData = [
-        ['Full Name', 'Email', 'Phone', 'Occupation', 'Location', 'Church', 'Inviter', 'Registration Date'],
-        ...members.map(member => [
-            member.fullName,
-            member.email,
-            member.phone,
-            member.occupation,
-            member.location,
-            member.churchName,
-            member.inviterName,
-            new Date(member.registrationDate).toLocaleDateString()
-        ])
-    ];
-    
-    const csvContent = excelData.map(row => 
-        row.map(field => `"${field}"`).join(',')
-    ).join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
-    const fileName = `All_Church_Data_${new Date().toISOString().split('T')[0]}.csv`;
-    
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showNotification('All data exported successfully!', 'success');
 }
 
 // Export inviters data
-function exportInvitersData() {
-    const inviters = getInviters();
-    const members = getMembers();
-    
-    if (inviters.length === 0) {
-        showNotification('No inviter data to export!', 'warning');
-        return;
+async function exportInvitersData() {
+    try {
+        const inviters = await Database.getInviters();
+        const members = await Database.getMembers();
+        
+        if (inviters.length === 0) {
+            showNotification('No inviter data to export!', 'warning');
+            return;
+        }
+        
+        const excelData = [
+            ['Full Name', 'Email', 'Church', 'Members Registered', 'Registration Date'],
+            ...inviters.map(inviter => {
+                const memberCount = members.filter(member => member.inviter_name === inviter.full_name).length;
+                return [
+                    inviter.full_name,
+                    inviter.email,
+                    inviter.church_name,
+                    memberCount,
+                    new Date(inviter.registration_date).toLocaleDateString()
+                ];
+            })
+        ];
+        
+        const csvContent = excelData.map(row => 
+            row.map(field => `"${field}"`).join(',')
+        ).join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        const fileName = `JAYC_Inviters_Data_${new Date().toISOString().split('T')[0]}.csv`;
+        
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showNotification('Inviters data exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error exporting inviters:', error);
+        showNotification('Error exporting inviters data', 'error');
     }
-    
-    const excelData = [
-        ['Full Name', 'Email', 'Church', 'Members Registered', 'Registration Date'],
-        ...inviters.map(inviter => {
-            const memberCount = members.filter(member => member.inviterName === inviter.fullName).length;
-            return [
-                inviter.fullName,
-                inviter.email,
-                inviter.churchName,
-                memberCount,
-                new Date(inviter.registrationDate).toLocaleDateString()
-            ];
-        })
-    ];
-    
-    const csvContent = excelData.map(row => 
-        row.map(field => `"${field}"`).join(',')
-    ).join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    
-    const fileName = `All_Inviters_Data_${new Date().toISOString().split('T')[0]}.csv`;
-    
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    
-    showNotification('Inviters data exported successfully!', 'success');
+}
+
+// Generate all inviter files
+function generateAllInviterFiles() {
+    showNotification('Batch file generation coming soon!', 'info');
 }
 
 // Logout function
@@ -725,38 +628,27 @@ function logout() {
 
 // Show notification
 function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    document.querySelectorAll('.notification').forEach(notification => {
+        notification.remove();
+    });
+    
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
         <div class="notification-content">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i>
             <span>${message}</span>
         </div>
-    `;
-    
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: ${type === 'success' ? '#4cc9f0' : type === 'warning' ? '#f8961e' : '#4361ee'};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
     `;
     
     document.body.appendChild(notification);
     
     setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 4000);
 }
 
 // Mobile sidebar toggle
@@ -785,6 +677,21 @@ window.addEventListener('resize', function() {
         sidebar.classList.remove('mobile-open');
     }
 });
+
+// Make functions globally available
+window.showSection = showSection;
+window.refreshData = refreshData;
+window.logout = logout;
+window.exportAllData = exportAllData;
+window.exportInvitersData = exportInvitersData;
+window.generateAllInviterFiles = generateAllInviterFiles;
+window.downloadInviterFile = downloadInviterFile;
+window.editInviter = editInviter;
+window.editMember = editMember;
+window.deleteInviter = deleteInviter;
+window.deleteMember = deleteMember;
+window.toggleSidebar = toggleSidebar;
+
 // Add CSS animations for notifications
 const style = document.createElement('style');
 style.textContent = `
@@ -798,12 +705,14 @@ style.textContent = `
         to { transform: translateX(100%); opacity: 0; }
     }
     
+    .notification {
+        animation: slideInRight 0.3s ease;
+    }
+    
     .notification-content {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
 `;
-
 document.head.appendChild(style);
-
