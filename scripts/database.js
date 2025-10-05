@@ -2,14 +2,18 @@
 const SUPABASE_URL = 'https://bfmiudjyvnpwgnshpvdr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmbWl1ZGp5dm5wd2duc2hwdmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1Njc1MTYsImV4cCI6MjA3NTE0MzUxNn0.1xjr8SFKZvtpPSqzMSpOriLF8jZ81N7HS6fFdESBsnc';
 
-// Initialize Supabase
+// Initialize Supabase and make it globally available
 let supabase;
 try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase initialized successfully');
+    
+    // Make supabase available globally for all files
+    window.supabase = supabase;
 } catch (error) {
     console.error('Supabase initialization failed:', error);
     supabase = null;
+    window.supabase = null;
 }
 
 class Database {
@@ -146,4 +150,5 @@ class Database {
 }
 
 // Make Database class globally available
+window.Database = Database;
 window.supabase = supabase;
