@@ -58,19 +58,20 @@ function initializeTabs() {
     });
 }
 
-// Updated populateInviterDropdown function
+// Populate inviter dropdown
 async function populateInviterDropdown() {
     const inviterSelect = document.getElementById('inviterName');
     
     try {
         // Get inviters from database
         const inviters = await Database.getInviters();
-        console.log('Inviters from database:', inviters);
+        console.log('Inviters from database for dropdown:', inviters);
         
         // Clear existing options
         inviterSelect.innerHTML = '<option value="">Select Inviter</option>';
         
         if (inviters.length === 0) {
+            console.log('No inviters found in database');
             const option = document.createElement('option');
             option.value = '';
             option.textContent = 'No inviters available - Please sign up first';
@@ -82,17 +83,21 @@ async function populateInviterDropdown() {
         // Populate dropdown
         inviters.forEach(inviter => {
             const option = document.createElement('option');
-            option.value = inviter.full_name;
+            option.value = inviter.full_name; // Make sure this matches what we search for
             option.textContent = `${inviter.full_name} - ${inviter.church_name}`;
+            option.setAttribute('data-church', inviter.church_name); // Store church name
             inviterSelect.appendChild(option);
         });
         
+        console.log('Inviter dropdown populated with', inviters.length, 'options');
+        
     } catch (error) {
-        console.error('Error loading inviters:', error);
+        console.error('Error loading inviters for dropdown:', error);
         inviterSelect.innerHTML = '<option value="">Error loading inviters</option>';
     }
 }
-/////////
+
+
 // Updated loadChurchGroups function
 async function loadChurchGroups() {
     const churchGroups = document.getElementById('churchGroups');
@@ -282,5 +287,6 @@ window.addEventListener('pageshow', function() {
     loadChurchGroups();
 
 });
+
 
 
