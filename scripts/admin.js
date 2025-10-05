@@ -18,19 +18,41 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeAdminLogin() {
     const loginForm = document.getElementById('adminLoginForm');
     
-    loginForm.addEventListener('submit', function(e) {
+    if (!loginForm) {
+        console.error('Admin login form not found!');
+        return;
+    }
+    
+    loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Admin login form submitted');
         
         const username = document.getElementById('adminUsername').value;
         const password = document.getElementById('adminPassword').value;
         
-        if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-            // Successful login
-            localStorage.setItem('adminLoggedIn', 'true');
-            showAdminDashboard();
-        } else {
-            alert('Invalid admin credentials. Please try again.');
-        }
+        console.log('Login attempt:', { username, password });
+        
+        // Show loading state
+        const loginBtn = document.querySelector('.btn-login');
+        const originalText = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+        loginBtn.disabled = true;
+        
+        // Small delay to show loading state
+        setTimeout(async () => {
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                console.log('Login successful');
+                // Successful login
+                localStorage.setItem('adminLoggedIn', 'true');
+                showAdminDashboard();
+            } else {
+                console.log('Login failed');
+                alert('Invalid admin credentials. Please try again.');
+                // Reset button
+                loginBtn.innerHTML = originalText;
+                loginBtn.disabled = false;
+            }
+        }, 1000);
     });
 }
 
@@ -776,3 +798,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
