@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    signupForm.addEventListener('submit', function(e) {
+    signupForm.addEventListener('submit', async function(e) {
         e.preventDefault();
+        console.log('Signup form submitted');
         
         const formData = {
             fullName: document.getElementById('inviterFullName').value.trim(),
@@ -16,6 +17,8 @@ document.addEventListener('DOMContentLoaded', function() {
             churchName: document.getElementById('inviterChurch').value,
             authCode: document.getElementById('authCode').value.trim()
         };
+        
+        console.log('Form data:', formData);
         
         // Validate required fields
         if (!formData.fullName || !formData.email || !formData.churchName || !formData.authCode) {
@@ -36,8 +39,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Register inviter
-        registerInviter(formData);
+        // Show loading state
+        const submitBtn = document.querySelector('#signupForm button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+        submitBtn.disabled = true;
+        
+        try {
+            // Register inviter
+            await registerInviter(formData);
+        } catch (error) {
+            console.error('Signup error:', error);
+            // Reset button
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
     });
 });
 
@@ -60,8 +76,8 @@ async function registerInviter(inviterData) {
         console.log('Database response:', newInviter);
         
         if (newInviter) {
+            console.log('Registration successful, showing modal');
             showSuccessModal();
-            // Don't auto-redirect, let user close modal
         } else {
             throw new Error('No data returned from database');
         }
@@ -77,14 +93,17 @@ async function registerInviter(inviterData) {
         } else {
             alert('Error registering inviter: ' + error.message);
         }
+        throw error; // Re-throw to handle in form submit
     }
 }
 
 // Modal functions for signup page
 function showSuccessModal() {
+    console.log('showSuccessModal called');
     const modal = document.getElementById('successModal');
     if (modal) {
         modal.style.display = 'flex';
+        console.log('Modal displayed');
     } else {
         // Fallback if modal doesn't exist
         alert('Registration successful! You can now close this page and return to the main dashboard.');
@@ -92,6 +111,7 @@ function showSuccessModal() {
 }
 
 function closeModal() {
+    console.log('closeModal called');
     const modal = document.getElementById('successModal');
     if (modal) {
         modal.style.display = 'none';
@@ -101,7 +121,7 @@ function closeModal() {
 }
 
 // Close modal when clicking outside
-window.addEventListener('click', function(e) {
+document.addEventListener('click', function(e) {
     const modal = document.getElementById('successModal');
     if (e.target === modal) {
         closeModal();
@@ -112,5 +132,4 @@ window.addEventListener('click', function(e) {
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
 
-// Debug function
 console.log('Auth.js loaded successfully');
