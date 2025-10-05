@@ -11,6 +11,32 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFormHandlers();
 });
 
+// Show success modal
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.style.display = 'flex';
+    } else {
+        alert('Registration successful!');
+    }
+}
+
+// Close modal
+function closeModal() {
+    const modal = document.getElementById('successModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Close modal when clicking outside
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('successModal');
+    if (e.target === modal) {
+        closeModal();
+    }
+});
+
 // Tab navigation
 function initializeTabs() {
     const tabButtons = document.querySelectorAll('.nav-btn[data-tab]');
@@ -223,31 +249,7 @@ async function registerMember(memberData) {
     }
 }
 
-// Show success modal
-function showSuccessModal() {
-    const modal = document.getElementById('successModal');
-    if (modal) {
-        modal.style.display = 'flex';
-    } else {
-        alert('Registration successful!');
-    }
-}
 
-// Close modal
-function closeModal() {
-    const modal = document.getElementById('successModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Close modal when clicking outside
-window.addEventListener('click', function(e) {
-    const modal = document.getElementById('successModal');
-    if (e.target === modal) {
-        closeModal();
-    }
-});
 
 // Refresh inviters list when coming back to the page
 window.addEventListener('pageshow', function() {
@@ -257,3 +259,4 @@ window.addEventListener('pageshow', function() {
     loadChurchGroups();
 
 });
+
