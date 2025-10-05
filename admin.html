@@ -2,14 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- In all HTML files, inside <head> -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - JAYC</title>
 
-    <!--Favicon-->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
 
-    <link rel="stylesheet" href="styles/admin.css">
+    <link rel="stylesheet" href="/styles/admin.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -56,10 +55,10 @@
             <nav class="admin-sidebar">
                 <div class="sidebar-header">
                     <div class="sidebar-brand">
-                        
+                        <img src="/images/Logo.png" alt="Church Logo" class="sidebar-logo">
                         <div>
                             <h1>Admin Panel</h1>
-                            
+                            <p>JAYC Registration</p>
                         </div>
                     </div>
                 </div>
@@ -106,7 +105,11 @@
                         </div>
                         
                         <div class="admin-actions">
-                            <button class="btn btn-info btn-sm" onclick="refreshData()">
+                            <a href="index.html" class="btn btn-info btn-sm">
+                                <i class="fas fa-home"></i>
+                                Main Dashboard
+                            </a>
+                            <button class="btn btn-secondary btn-sm" onclick="refreshData()">
                                 <i class="fas fa-sync-alt"></i>
                                 Refresh
                             </button>
@@ -274,17 +277,23 @@
         </div>
     </div>
 
-    <!-- Add this before your other scripts -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="scripts/database.js"></script>
-    <script src="scripts/admin.js"></script>
+    <script src="/scripts/database.js"></script>
+    <script src="/scripts/admin.js"></script>
+    
+    <script>
+        // Temporary emergency functions
+        window.showNotification = function(message, type = 'info') {
+            alert(message);
+        }
+        
+        window.generateAllInviterFiles = function() {
+            alert('This feature will be implemented in the admin.js file');
+        }
+        
+        // Debug
+        console.log('Admin page loaded successfully');
+    </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
