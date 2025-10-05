@@ -2,193 +2,164 @@
 const SUPABASE_URL = 'https://bbmcgriiakxlrzdwogqn.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJibWNncmlpYWt4bHJ6ZHdvZ3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2ODEzOTgsImV4cCI6MjA3NTI1NzM5OH0.b01T393EkDXuMzt6GPoeDnOdNQ8Aan-2yYA-fcZikfQ';
 
-// Initialize Supabase
-let supabase = null;
+console.log('🔧 ===== SUPABASE DEBUGGING =====');
+console.log('Step 1: Checking Supabase library...');
+console.log('window.supabase exists:', typeof window.supabase !== 'undefined');
+console.log('window.supabase.createClient exists:', typeof window.supabase?.createClient !== 'undefined');
 
-console.log('=== SUPABASE INITIALIZATION ===');
-console.log('Supabase URL:', SUPABASE_URL);
-console.log('Supabase library available:', typeof window.supabase !== 'undefined');
-console.log('createClient function available:', typeof window.supabase?.createClient !== 'undefined');
-
-try {
-    // Check if Supabase library is loaded
-    if (typeof window.supabase === 'undefined') {
-        throw new Error('Supabase library not loaded. Check the script tag.');
-    }
-    
-    if (typeof window.supabase.createClient === 'undefined') {
-        throw new Error('Supabase createClient function not available.');
-    }
-    
-    // Create Supabase client
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    if (!supabase) {
-        throw new Error('Supabase client creation returned null');
-    }
-    
-    console.log('✅ Supabase client created successfully');
-    
-    // Test the connection immediately
-    const { data, error } = await supabase
-        .from('inviters')
-        .select('count')
-        .limit(1);
-    
-    if (error) {
-        throw new Error(`Supabase connection test failed: ${error.message}`);
-    }
-    
-    console.log('✅ Supabase connection test successful!');
-    console.log('Test response:', data);
-    
-} catch (error) {
-    console.error('❌ SUPABASE SETUP FAILED:', error);
-    console.error('Please check:');
-    console.error('1. Supabase project is active');
-    console.error('2. Tables (inviters, members) exist');
-    console.error('3. RLS policies allow operations');
-    console.error('4. Network connection to Supabase');
-    throw error; // Stop execution if Supabase fails
+if (typeof window.supabase === 'undefined') {
+    console.error('❌ Supabase library not loaded! Check your script tag.');
+    console.log('Make sure you have: <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>');
 }
 
-// Make Supabase globally available
-window.supabase = supabase;
+let supabase;
 
-class Database {
-    static async registerInviter(inviterData) {
-        console.log('Database.registerInviter called with:', inviterData);
-        
-        // Validate required fields
-        if (!inviterData.full_name || !inviterData.email || !inviterData.church_name) {
-            throw new Error('Missing required fields: full_name, email, or church_name');
+try {
+    console.log('Step 2: Creating Supabase client...');
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log('✅ Supabase client created');
+} catch (error) {
+    console.error('❌ Failed to create Supabase client:', error);
+    throw error;
+}
+
+console.log('Step 3: Testing Supabase connection...');
+
+// Test the connection with multiple approaches
+async function testSupabaseConnection() {
+    try {
+        console.log('Testing method 1: Simple query...');
+        const { data, error } = await supabase
+            .from('inviters')
+            .select('*')
+            .limit(1);
+
+        if (error) {
+            console.error('❌ Query failed:', error);
+            console.log('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details,
+                hint: error.hint
+            });
+            return false;
         }
+
+        console.log('✅ Query successful! Data:', data);
+        return true;
+        
+    } catch (error) {
+        console.error('❌ Connection test failed completely:', error);
+        return false;
+    }
+}
+
+// Initialize and test
+(async function() {
+    const isConnected = await testSupabaseConnection();
+    
+    if (isConnected) {
+        console.log('🎉 SUPABASE CONNECTION SUCCESSFUL!');
+        window.supabase = supabase;
+        window.supabaseConnected = true;
+    } else {
+        console.error('💥 SUPABASE CONNECTION FAILED');
+        console.log('Please check:');
+        console.log('1. Supabase project is active and running');
+        console.log('2. Tables "inviters" and "members" exist');
+        console.log('3. RLS policies allow public access (or disable RLS)');
+        console.log('4. Network can reach Supabase URL');
+        window.supabaseConnected = false;
+    }
+})();
+
+// Database class - Only works if Supabase is connected
+class Database {
+    static async checkConnection() {
+        if (!window.supabaseConnected) {
+            throw new Error('Supabase is not connected. Check console for errors.');
+        }
+        return true;
+    }
+
+    static async registerInviter(inviterData) {
+        await this.checkConnection();
         
         const { data, error } = await supabase
             .from('inviters')
-            .insert([
-                {
-                    ...inviterData,
-                    registration_date: new Date().toISOString()
-                }
-            ])
+            .insert([{
+                ...inviterData,
+                registration_date: new Date().toISOString()
+            }])
             .select();
-        
-        if (error) {
-            console.error('Supabase insert error:', error);
-            throw new Error(`Failed to register inviter: ${error.message}`);
-        }
-        
+
+        if (error) throw error;
         return data[0];
     }
     
     static async getInviters() {
+        await this.checkConnection();
+        
         const { data, error } = await supabase
             .from('inviters')
             .select('*')
             .order('full_name');
-        
-        if (error) {
-            console.error('Supabase getInviters error:', error);
-            throw new Error(`Failed to get inviters: ${error.message}`);
-        }
-        
+
+        if (error) throw error;
         return data || [];
     }
     
     static async getMembers() {
+        await this.checkConnection();
+        
         const { data, error } = await supabase
             .from('members')
             .select('*')
             .order('registration_date', { ascending: false });
-        
-        if (error) {
-            console.error('Supabase getMembers error:', error);
-            throw new Error(`Failed to get members: ${error.message}`);
-        }
-        
+
+        if (error) throw error;
         return data || [];
     }
     
     static async registerMember(memberData) {
+        await this.checkConnection();
+        
         const { data, error } = await supabase
             .from('members')
-            .insert([
-                {
-                    ...memberData,
-                    registration_date: new Date().toISOString()
-                }
-            ])
+            .insert([{
+                ...memberData,
+                registration_date: new Date().toISOString()
+            }])
             .select();
-        
-        if (error) {
-            console.error('Supabase registerMember error:', error);
-            throw new Error(`Failed to register member: ${error.message}`);
-        }
-        
+
+        if (error) throw error;
         return data[0];
     }
 
-    // Delete methods
     static async deleteInviter(email) {
+        await this.checkConnection();
+        
         const { error } = await supabase
             .from('inviters')
             .delete()
             .eq('email', email);
-        
-        if (error) {
-            console.error('Supabase deleteInviter error:', error);
-            throw new Error(`Failed to delete inviter: ${error.message}`);
-        }
-        
+
+        if (error) throw error;
         return true;
     }
 
     static async deleteMember(email) {
+        await this.checkConnection();
+        
         const { error } = await supabase
             .from('members')
             .delete()
             .eq('email', email);
-        
-        if (error) {
-            console.error('Supabase deleteMember error:', error);
-            throw new Error(`Failed to delete member: ${error.message}`);
-        }
-        
-        return true;
-    }
 
-    // Edit methods
-    static async editInviter(email, updates) {
-        const { error } = await supabase
-            .from('inviters')
-            .update(updates)
-            .eq('email', email);
-        
-        if (error) {
-            console.error('Supabase editInviter error:', error);
-            throw new Error(`Failed to edit inviter: ${error.message}`);
-        }
-        
-        return true;
-    }
-
-    static async editMember(email, updates) {
-        const { error } = await supabase
-            .from('members')
-            .update(updates)
-            .eq('email', email);
-        
-        if (error) {
-            console.error('Supabase editMember error:', error);
-            throw new Error(`Failed to edit member: ${error.message}`);
-        }
-        
+        if (error) throw error;
         return true;
     }
 }
 
-// Make Database class globally available
 window.Database = Database;
-
-console.log('✅ Database.js loaded successfully - Supabase only mode');
+console.log('Database class initialized (Supabase only)');
