@@ -1,6 +1,6 @@
-// Simple database handler with error recovery
-const SUPABASE_URL = 'https://bfmiudjyvnpwgnshpvdr.supabase.co'; // REPLACE WITH YOURS
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmbWl1ZGp5dm5wd2duc2hwdmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1Njc1MTYsImV4cCI6MjA3NTE0MzUxNn0.1xjr8SFKZvtpPSqzMSpOriLF8jZ81N7HS6fFdESBsnc'; // REPLACE WITH YOURS
+// Database handler with Supabase integration
+const SUPABASE_URL = 'https://bfmiudjyvnpwgnshpvdr.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmbWl1ZGp5dm5wd2duc2hwdmRyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1Njc1MTYsImV4cCI6MjA3NTE0MzUxNn0.1xjr8SFKZvtpPSqzMSpOriLF8jZ81N7HS6fFdESBsnc';
 
 // Initialize Supabase
 let supabase;
@@ -79,7 +79,6 @@ class Database {
         }
     }
     
-    // Keep your other database methods the same...
     static async getInviters() {
         if (!supabase) {
             return JSON.parse(localStorage.getItem('inviters')) || [];
@@ -145,3 +144,6 @@ class Database {
         }
     }
 }
+
+// Make Database class globally available
+window.Database = Database;
