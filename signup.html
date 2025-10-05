@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inviter Signup - JAYC</title>
 
-    <!--Favicon-->
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="/styles/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="header-content">
-                <h1 class="logo">
-                    <i class="fas fa-church"></i>
-                    Jesus Alive Youth Conference
-                </h1>
+                <div class="logo">
+                    <img src="/images/Logo.png" alt="Church Logo" class="logo-image">
+                    <span class="logo-text">Jesus Alive Youth Conference</span>
+                </div>
                 <a href="index.html" class="back-btn">
                     <i class="fas fa-arrow-left"></i>
                     Back to Dashboard
@@ -98,12 +98,43 @@
         </div>
     </div>
 
-    <!-- Add this before your other scripts -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="scripts/database.js"></script>
-    <script src="scripts/auth.js"></script>
+    <script src="/scripts/database.js"></script>
+    <script src="/scripts/auth.js"></script>
+    
+    <script>
+        // Temporary emergency functions to ensure modal works
+        window.showSuccessModal = function() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.style.display = 'flex';
+            } else {
+                alert('Registration successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+
+        window.closeModal = function() {
+            const modal = document.getElementById('successModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            window.location.href = 'index.html';
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('successModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Debug script
+        console.log('Signup page loaded successfully');
+    </script>
 </body>
-
 </html>
-
-
