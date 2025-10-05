@@ -4,9 +4,12 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Initialize Supabase and make it globally available
 let supabase;
+let supabaseAvailable = false;
+
 try {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     console.log('Supabase initialized successfully');
+    supabaseAvailable = true;
     
     // Make supabase available globally for all files
     window.supabase = supabase;
@@ -14,23 +17,53 @@ try {
     console.error('Supabase initialization failed:', error);
     supabase = null;
     window.supabase = null;
+    supabaseAvailable = false;
 }
 
-// Add this to database.js after the supabase initialization
-console.log('=== SUPABASE DEBUG INFO ===');
-console.log('Supabase URL:', SUPABASE_URL);
-console.log('Supabase Key Length:', SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.length : 'No key');
-console.log('Window.supabase exists:', !!window.supabase);
-console.log('Supabase client created:', !!supabase);
+// Enhanced connection test
+async function testSupabaseConnection() {
+    console.log('=== SUPABASE CONNECTION TEST ===');
+    console.log('Supabase URL:', SUPABASE_URL);
+    console.log('Supabase Key exists:', !!SUPABASE_ANON_KEY);
+    console.log('Supabase client created:', !!supabase);
+    console.log('Supabase available:', supabaseAvailable);
 
-// Test the connection
-if (supabase) {
-    supabase.from('inviters').select('count').then(result => {
-        console.log('Supabase connection test:', result.error ? 'FAILED: ' + result.error.message : 'SUCCESS');
-    }).catch(error => {
-        console.log('Supabase connection test failed completely:', error);
-    });
+    if (!supabase) {
+        console.log('❌ Supabase client not created - using localStorage fallback');
+        return false;
+    }
+
+    try {
+        console.log('Testing Supabase connection...');
+        const { data, error } = await supabase
+            .from('inviters')
+            .select('count')
+            .limit(1);
+
+        if (error) {
+            console.error('❌ Supabase connection FAILED:', error);
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                details: error.details
+            });
+            return false;
+        } else {
+            console.log('✅ Supabase connection SUCCESSFUL!');
+            console.log('Test response:', data);
+            return true;
+        }
+    } catch (error) {
+        console.error('❌ Supabase test failed completely:', error);
+        return false;
+    }
 }
+
+// Run connection test immediately
+testSupabaseConnection().then(connected => {
+    console.log('Final Supabase status:', connected ? 'CONNECTED' : 'NOT CONNECTED');
+    window.supabaseAvailable = connected;
+});
 
 class Database {
     static async registerInviter(inviterData) {
@@ -41,9 +74,11 @@ class Database {
             throw new Error('Missing required fields: full_name, email, or church_name');
         }
         
-        // If Supabase is not available, use localStorage as fallback
-        if (!supabase) {
-            console.log('Using localStorage fallback for inviter');
+        // Check if Supabase is actually working
+        const isSupabaseWorking = await testSupabaseConnection();
+        
+        if (!isSupabaseWorking) {
+            console.log('Using localStorage fallback for inviter registration');
             return this._registerInviterLocal(inviterData);
         }
         
@@ -51,13 +86,19 @@ class Database {
             console.log('Attempting Supabase insert...');
             const { data, error } = await supabase
                 .from('inviters')
-                .insert([inviterData])
+                .insert([
+                    {
+                        ...inviterData,
+                        registration_date: new Date().toISOString()
+                    }
+                ])
                 .select();
             
             console.log('Supabase response - data:', data, 'error:', error);
             
             if (error) {
-                throw error;
+                console.error('Supabase insert failed, falling back to localStorage');
+                return this._registerInviterLocal(inviterData);
             }
             
             if (!data || data.length === 0) {
@@ -83,7 +124,7 @@ class Database {
             
             const newInviter = {
                 ...inviterData,
-                id: Date.now(),
+                id: Date.now().toString(),
                 registration_date: new Date().toISOString()
             };
             
@@ -100,7 +141,10 @@ class Database {
     }
     
     static async getInviters() {
-        if (!supabase) {
+        const isSupabaseWorking = await testSupabaseConnection();
+        
+        if (!isSupabaseWorking) {
+            console.log('Using localStorage fallback for getInviters');
             return JSON.parse(localStorage.getItem('inviters')) || [];
         }
         
@@ -110,7 +154,11 @@ class Database {
                 .select('*')
                 .order('full_name');
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase getInviters failed, using localStorage:', error);
+                return JSON.parse(localStorage.getItem('inviters')) || [];
+            }
+            
             return data || [];
         } catch (error) {
             console.error('Supabase error, using localStorage:', error);
@@ -119,7 +167,10 @@ class Database {
     }
     
     static async getMembers() {
-        if (!supabase) {
+        const isSupabaseWorking = await testSupabaseConnection();
+        
+        if (!isSupabaseWorking) {
+            console.log('Using localStorage fallback for getMembers');
             return JSON.parse(localStorage.getItem('members')) || [];
         }
         
@@ -129,7 +180,11 @@ class Database {
                 .select('*')
                 .order('registration_date', { ascending: false });
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase getMembers failed, using localStorage:', error);
+                return JSON.parse(localStorage.getItem('members')) || [];
+            }
+            
             return data || [];
         } catch (error) {
             console.error('Supabase error, using localStorage:', error);
@@ -138,9 +193,16 @@ class Database {
     }
     
     static async registerMember(memberData) {
-        if (!supabase) {
+        const isSupabaseWorking = await testSupabaseConnection();
+        
+        if (!isSupabaseWorking) {
+            console.log('Using localStorage fallback for member registration');
             const members = JSON.parse(localStorage.getItem('members')) || [];
-            const newMember = {...memberData, id: Date.now()};
+            const newMember = {
+                ...memberData, 
+                id: Date.now().toString(),
+                registration_date: new Date().toISOString()
+            };
             members.push(newMember);
             localStorage.setItem('members', JSON.stringify(members));
             return newMember;
@@ -149,18 +211,108 @@ class Database {
         try {
             const { data, error } = await supabase
                 .from('members')
-                .insert([memberData])
+                .insert([
+                    {
+                        ...memberData,
+                        registration_date: new Date().toISOString()
+                    }
+                ])
                 .select();
             
-            if (error) throw error;
+            if (error) {
+                console.error('Supabase registerMember failed, using localStorage:', error);
+                const members = JSON.parse(localStorage.getItem('members')) || [];
+                const newMember = {
+                    ...memberData, 
+                    id: Date.now().toString(),
+                    registration_date: new Date().toISOString()
+                };
+                members.push(newMember);
+                localStorage.setItem('members', JSON.stringify(members));
+                return newMember;
+            }
+            
             return data ? data[0] : null;
         } catch (error) {
             console.error('Supabase error, using localStorage:', error);
             const members = JSON.parse(localStorage.getItem('members')) || [];
-            const newMember = {...memberData, id: Date.now()};
+            const newMember = {
+                ...memberData, 
+                id: Date.now().toString(),
+                registration_date: new Date().toISOString()
+            };
             members.push(newMember);
             localStorage.setItem('members', JSON.stringify(members));
             return newMember;
+        }
+    }
+
+    // NEW: Delete methods that work with both Supabase and localStorage
+    static async deleteInviter(email) {
+        const isSupabaseWorking = await testSupabaseConnection();
+        
+        if (!isSupabaseWorking) {
+            console.log('Using localStorage fallback for deleteInviter');
+            const inviters = JSON.parse(localStorage.getItem('inviters')) || [];
+            const updatedInviters = inviters.filter(inviter => inviter.email !== email);
+            
+            if (updatedInviters.length === inviters.length) {
+                throw new Error('Inviter not found');
+            }
+            
+            localStorage.setItem('inviters', JSON.stringify(updatedInviters));
+            return true;
+        }
+        
+        try {
+            const { error } = await supabase
+                .from('inviters')
+                .delete()
+                .eq('email', email);
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('Supabase delete failed, trying localStorage:', error);
+            // Fallback to localStorage
+            const inviters = JSON.parse(localStorage.getItem('inviters')) || [];
+            const updatedInviters = inviters.filter(inviter => inviter.email !== email);
+            localStorage.setItem('inviters', JSON.stringify(updatedInviters));
+            return true;
+        }
+    }
+
+    static async deleteMember(email) {
+        const isSupabaseWorking = await testSupabaseConnection();
+        
+        if (!isSupabaseWorking) {
+            console.log('Using localStorage fallback for deleteMember');
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            const updatedMembers = members.filter(member => member.email !== email);
+            
+            if (updatedMembers.length === members.length) {
+                throw new Error('Member not found');
+            }
+            
+            localStorage.setItem('members', JSON.stringify(updatedMembers));
+            return true;
+        }
+        
+        try {
+            const { error } = await supabase
+                .from('members')
+                .delete()
+                .eq('email', email);
+            
+            if (error) throw error;
+            return true;
+        } catch (error) {
+            console.error('Supabase delete failed, trying localStorage:', error);
+            // Fallback to localStorage
+            const members = JSON.parse(localStorage.getItem('members')) || [];
+            const updatedMembers = members.filter(member => member.email !== email);
+            localStorage.setItem('members', JSON.stringify(updatedMembers));
+            return true;
         }
     }
 }
@@ -168,3 +320,6 @@ class Database {
 // Make Database class globally available
 window.Database = Database;
 window.supabase = supabase;
+window.supabaseAvailable = supabaseAvailable;
+
+console.log('Database.js loaded successfully');
