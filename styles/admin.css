@@ -276,7 +276,7 @@ body {
 }
 
 .sidebar-logo {
-    height: 32px;
+    height: 50px;
     width: auto;
     border-radius: 6px;
 }
@@ -930,3 +930,4 @@ body {
         opacity: 0; 
     }
 }
+
