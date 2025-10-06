@@ -1,7 +1,7 @@
 // Enhanced Admin Dashboard Functionality
 const ADMIN_CREDENTIALS = {
     username: 'admin',
-    password: 'admin2024'
+    password: 'jayc0024'
 };
 
 // Initialize admin dashboard
@@ -797,6 +797,7 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
 
 
 
