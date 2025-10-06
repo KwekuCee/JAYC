@@ -417,7 +417,7 @@ function loadFilteredMembers(members) {
 
 // SIMPLIFIED Delete inviter function - uses Database class
 async function deleteInviter(email) {
-    if (!confirm('Are you sure you want to delete this inviter? This will remove them from the database permanently.')) {
+    if (!confirm('Are you sure you want to delete this inviter? This action cannot be undone.')) {
         return;
     }
     
@@ -433,7 +433,7 @@ async function deleteInviter(email) {
 
 // SIMPLIFIED Delete member function - uses Database class
 async function deleteMember(email) {
-    if (!confirm('Are you sure you want to delete this member? This will remove them from the database permanently.')) {
+    if (!confirm('Are you sure you want to delete this member? This action cannot be undone.')) {
         return;
     }
     
@@ -797,5 +797,6 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
 
 
