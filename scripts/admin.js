@@ -83,7 +83,6 @@ async function loadAdminData() {
         
         setupSearch();
         
-        showNotification('Admin data loaded successfully!', 'success');
         
     } catch (error) {
         console.error('Error loading admin data:', error);
@@ -798,4 +797,5 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
 
