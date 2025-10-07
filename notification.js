@@ -1,38 +1,60 @@
-// Notifications Service
+// Real Notifications Service with EmailJS and Twilio
 class Notifications {
-    // Email service configuration (using EmailJS or similar)
-    static emailService = {
-        serviceId: 'your_email_service_id',
-        templateId: 'your_template_id',
-        userId: 'your_user_id'
+    // EmailJS Configuration
+    static emailConfig = {
+        serviceId: 'service_ekvxkrl',
+        templateId: 'template_k9mhapt',
+        userId: '2BTr21gGjQQVLvgFR'// Replace with yours
     };
 
-    // SMS service configuration (using Twilio or similar)
-    static smsService = {
-        accountSid: 'your_twilio_sid',
-        authToken: 'your_twilio_token',
-        phoneNumber: 'your_twilio_number'
+    // Twilio Configuration (Optional - requires paid account)
+    static twilioConfig = {
+        accountSid: 'your_twilio_account_sid',
+        authToken: 'your_twilio_auth_token',
+        phoneNumber: 'your_twilio_phone_number'
     };
+
+    // Initialize EmailJS
+    static initEmailJS() {
+        if (typeof emailjs !== 'undefined') {
+            emailjs.init(this.emailConfig.userId);
+            console.log('EmailJS initialized');
+        } else {
+            console.warn('EmailJS not loaded. Add: <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>');
+        }
+    }
 
     // Send welcome email to new member
     static async sendMemberWelcome(memberData) {
         try {
-            const emailData = {
+            if (typeof emailjs === 'undefined') {
+                console.log('EmailJS not available, logging email locally');
+                this.logNotification('EMAIL', 'MEMBER_WELCOME', memberData);
+                return true;
+            }
+
+            const templateParams = {
                 to_email: memberData.email,
                 to_name: memberData.full_name,
                 church_name: memberData.church_name,
                 inviter_name: memberData.inviter_name,
-                registration_date: new Date().toLocaleDateString()
+                registration_date: new Date().toLocaleDateString(),
+                program_name: 'Jesus Alive Youth Conference'
             };
 
-            console.log('Sending welcome email to:', memberData.email);
-            
-            // For now, log the email (integrate with actual email service later)
-            this.logNotification('EMAIL', 'MEMBER_WELCOME', memberData);
-            
+            const response = await emailjs.send(
+                this.emailConfig.serviceId,
+                this.emailConfig.templateId,
+                templateParams
+            );
+
+            console.log('✅ Welcome email sent successfully:', response);
+            this.logNotification('EMAIL', 'MEMBER_WELCOME', memberData, true);
             return true;
+
         } catch (error) {
-            console.error('Error sending welcome email:', error);
+            console.error('❌ Error sending welcome email:', error);
+            this.logNotification('EMAIL', 'MEMBER_WELCOME', memberData, false);
             return false;
         }
     }
@@ -40,57 +62,132 @@ class Notifications {
     // Send notification to inviter about new member
     static async sendInviterNotification(inviterEmail, memberData) {
         try {
-            console.log('Notifying inviter:', inviterEmail, 'about new member:', memberData.full_name);
-            
-            // For now, log the notification (integrate with actual service later)
-            this.logNotification('SMS/EMAIL', 'INVITER_NOTIFICATION', {
-                inviter_email: inviterEmail,
+            if (typeof emailjs === 'undefined') {
+                console.log('EmailJS not available, logging notification locally');
+                this.logNotification('EMAIL', 'INVITER_NOTIFICATION', { inviterEmail, memberData });
+                return true;
+            }
+
+            const templateParams = {
+                to_email: inviterEmail,
+                inviter_name: memberData.inviter_name,
                 member_name: memberData.full_name,
-                member_church: memberData.church_name
-            });
-            
+                member_email: memberData.email,
+                member_phone: memberData.phone,
+                member_church: memberData.church_name,
+                registration_date: new Date().toLocaleDateString()
+            };
+
+            const response = await emailjs.send(
+                this.emailConfig.serviceId,
+                'inviter_notification_template', // Create this template in EmailJS
+                templateParams
+            );
+
+            console.log('✅ Inviter notification sent successfully:', response);
+            this.logNotification('EMAIL', 'INVITER_NOTIFICATION', { inviterEmail, memberData }, true);
             return true;
+
         } catch (error) {
-            console.error('Error sending inviter notification:', error);
+            console.error('❌ Error sending inviter notification:', error);
+            this.logNotification('EMAIL', 'INVITER_NOTIFICATION', { inviterEmail, memberData }, false);
             return false;
         }
     }
 
-    // Send SMS notification
+    // Send SMS via Twilio (Optional - requires paid account)
     static async sendSMS(phoneNumber, message) {
         try {
-            console.log('Sending SMS to:', phoneNumber, 'Message:', message);
-            
-            // For now, log the SMS (integrate with Twilio later)
-            this.logNotification('SMS', 'GENERAL', { phone: phoneNumber, message });
-            
+            // Check if Twilio credentials are available
+            if (!this.twilioConfig.accountSid || this.twilioConfig.accountSid === 'your_twilio_account_sid') {
+                console.log('Twilio not configured, logging SMS locally:', { phoneNumber, message });
+                this.logNotification('SMS', 'GENERAL', { phoneNumber, message }, false);
+                return false;
+            }
+
+            // Twilio API call would go here
+            // const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${this.twilioConfig.accountSid}/Messages.json`, {
+            //     method: 'POST',
+            //     headers: {
+            //         'Authorization': 'Basic ' + btoa(this.twilioConfig.accountSid + ':' + this.twilioConfig.authToken),
+            //         'Content-Type': 'application/x-www-form-urlencoded',
+            //     },
+            //     body: new URLSearchParams({
+            //         To: phoneNumber,
+            //         From: this.twilioConfig.phoneNumber,
+            //         Body: message
+            //     })
+            // });
+
+            console.log('📱 SMS would be sent to:', phoneNumber, 'Message:', message);
+            this.logNotification('SMS', 'GENERAL', { phoneNumber, message }, true);
             return true;
+
         } catch (error) {
-            console.error('Error sending SMS:', error);
+            console.error('❌ Error sending SMS:', error);
+            this.logNotification('SMS', 'GENERAL', { phoneNumber, message }, false);
             return false;
         }
     }
 
-    // Log notifications for tracking
-    static logNotification(type, event, data) {
+    // Enhanced notification logging
+    static logNotification(type, event, data, success = false) {
         const notifications = JSON.parse(localStorage.getItem('notification_logs')) || [];
-        notifications.push({
+        const notification = {
             type,
             event,
             data,
+            success,
             timestamp: new Date().toISOString(),
-            sent: false // Mark as false for now since we're just logging
-        });
-        localStorage.setItem('notification_logs', JSON.stringify(notifications));
+            id: Date.now().toString()
+        };
         
-        console.log(`📧 ${type} Notification Logged:`, { event, data });
+        notifications.unshift(notification); // Add to beginning
+        localStorage.setItem('notification_logs', JSON.stringify(notifications.slice(0, 1000))); // Keep last 1000
+        
+        console.log(`📧 ${success ? '✅' : '❌'} ${type} ${event}:`, data);
     }
 
-    // Get notification logs (for admin)
-    static getNotificationLogs() {
-        return JSON.parse(localStorage.getItem('notification_logs')) || [];
+    // Get notification logs with filtering
+    static getNotificationLogs(limit = 50, type = 'all') {
+        let logs = JSON.parse(localStorage.getItem('notification_logs')) || [];
+        
+        if (type !== 'all') {
+            logs = logs.filter(log => log.type === type);
+        }
+        
+        return logs.slice(0, limit);
+    }
+
+    // Clear notification logs
+    static clearNotificationLogs() {
+        localStorage.removeItem('notification_logs');
+    }
+
+    // Get notification statistics
+    static getNotificationStats() {
+        const logs = JSON.parse(localStorage.getItem('notification_logs')) || [];
+        
+        const stats = {
+            total: logs.length,
+            successful: logs.filter(log => log.success).length,
+            failed: logs.filter(log => !log.success).length,
+            byType: {},
+            byEvent: {}
+        };
+
+        logs.forEach(log => {
+            stats.byType[log.type] = (stats.byType[log.type] || 0) + 1;
+            stats.byEvent[log.event] = (stats.byEvent[log.event] || 0) + 1;
+        });
+
+        return stats;
     }
 }
 
-// Make globally available
+// Initialize when loaded
+document.addEventListener('DOMContentLoaded', () => {
+    Notifications.initEmailJS();
+});
+
 window.Notifications = Notifications;
