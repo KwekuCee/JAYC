@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Flyer - JAYC</title>
+    <link rel="stylesheet" href="/styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .flyer-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .flyer-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .flyer-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            margin-bottom: 20px;
+        }
+        
+        .flyer-name {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .flyer-details {
+            font-size: 1.2em;
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+        
+        .flyer-church {
+            font-size: 1.5em;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+        
+        .flyer-message {
+            font-size: 1.1em;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        .download-btn {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="/images/Logo.png" alt="Church Logo" class="logo-image">
+                    <span class="logo-text">JAYC Flyer Generator</span>
+                </div>
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Registration
+                </a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-share-square"></i> Social Media Flyer Generator</h2>
+                    <p>Create beautiful flyers for social media sharing</p>
+                </div>
+                
+                <div class="registration-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="memberEmail">
+                                <i class="fas fa-envelope"></i>
+                                Your Email Address *
+                            </label>
+                            <input type="email" id="memberEmail" name="email" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="memberPhoto">
+                                <i class="fas fa-camera"></i>
+                                Upload Your Photo *
+                            </label>
+                            <input type="file" id="memberPhoto" name="photo" accept="image/*" required>
+                            <small class="help-text">Upload a clear portrait photo for your flyer</small>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-primary" onclick="generateFlyer()">
+                            <i class="fas fa-magic"></i>
+                            Generate My Flyer
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flyer Preview -->
+            <div class="card" id="flyerPreview" style="display: none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-eye"></i> Your Flyer Preview</h2>
+                    <p>Download and share on social media</p>
+                </div>
+                
+                <div class="flyer-container">
+                    <div class="flyer-preview" id="flyerCanvas">
+                        <img id="previewImage" class="flyer-image" src="" alt="Member Photo">
+                        <div class="flyer-name" id="previewName">Member Name</div>
+                        <div class="flyer-details" id="previewChurch">Church Name</div>
+                        <div class="flyer-church">JAYC 2024</div>
+                        <div class="flyer-message">"I'm excited to be part of Jesus Alive Youth Conference!"</div>
+                        <div class="flyer-details">#JAYC2024 #JesusAlive</div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn btn-success download-btn" onclick="downloadFlyer()">
+                            <i class="fas fa-download"></i>
+                            Download Flyer
+                        </button>
+                        <button class="btn btn-info" onclick="shareFlyer()">
+                            <i class="fas fa-share"></i>
+                            Share on Social Media
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- HTML2Canvas for flyer download -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/scripts/database.js"></script>
+    <script>
+        async function generateFlyer() {
+            const email = document.getElementById('memberEmail').value.trim();
+            const photoInput = document.getElementById('memberPhoto');
+            
+            if (!email || !photoInput.files[0]) {
+                alert('Please enter your email and upload a photo.');
+                return;
+            }
+
+            try {
+                // Get member data
+                const members = await Database.getMembers();
+                const member = members.find(m => m.email === email);
+                
+                if (!member) {
+                    alert('No registration found with this email. Please check your email address.');
+                    return;
+                }
+
+                // Read and display photo
+                const file = photoInput.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('previewName').textContent = member.full_name;
+                    document.getElementById('previewChurch').textContent = `${member.church_name} • Invited by: ${member.inviter_name}`;
+                    
+                    // Show flyer preview
+                    document.getElementById('flyerPreview').style.display = 'block';
+                };
+                
+                reader.readAsDataURL(file);
+                
+            } catch (error) {
+                console.error('Error generating flyer:', error);
+                alert('Error generating flyer. Please try again.');
+            }
+        }
+
+        function downloadFlyer() {
+            html2canvas(document.getElementById('flyerCanvas')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'JAYC-Flyer.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function shareFlyer() {
+            if (navigator.share) {
+                html2canvas(document.getElementById('flyerCanvas')).then(canvas => {
+                    canvas.toBlob(blob => {
+                        const file = new File([blob], 'JAYC-Flyer.png', { type: 'image/png' });
+                        navigator.share({
+                            files: [file],
+                            title: 'JAYC Registration',
+                            text: 'Check out my JAYC registration flyer!'
+                        });
+                    });
+                });
+            } else {
+                alert('Web Share API not supported in your browser. Please download and share manually.');
+            }
+        }
+    </script>
+</body>
+</html>
