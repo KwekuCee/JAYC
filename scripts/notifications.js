@@ -1,13 +1,19 @@
-// Enhanced Notifications Service
+// Enhanced Notifications Service with better email handling
 class Notifications {
     static emailConfig = {
         serviceId: 'service_ekvxkrl',
         templateId: 'template_k9mhapt',
         userId: '2BTr21gGjQQVLvgFR'
     };
- 
+
+    // Email validation function
+    static isValidEmail(email) {
+        if (!email || typeof email !== 'string') return false;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email.trim());
+    }
+
     static init() {
-        // Initialize EmailJS if available
         if (typeof emailjs !== 'undefined') {
             try {
                 emailjs.init(this.emailConfig.userId);
@@ -17,43 +23,50 @@ class Notifications {
                 console.warn('⚠️ EmailJS initialization failed:', error);
                 return false;
             }
-        } else {
-            console.warn('⚠️ EmailJS not loaded - notifications will be logged locally');
-            return false;
         }
+        return false;
     }
 
-    // Enhanced member welcome email
+    // Enhanced member welcome email with better error handling
     static async sendMemberWelcome(memberData) {
         const notificationId = 'welcome_' + Date.now();
         
         try {
             console.log('📧 Attempting to send welcome email to:', memberData.email);
-            
-            // Basic validation
-            if (!memberData.email || !memberData.full_name) {
-                throw new Error('Missing required member data');
+
+            // Validate email
+            if (!this.isValidEmail(memberData.email)) {
+                console.warn('⚠️ Invalid email address:', memberData.email);
+                this.logNotification({
+                    type: 'EMAIL',
+                    event: 'MEMBER_WELCOME',
+                    recipient: memberData.email,
+                    data: memberData,
+                    success: false,
+                    error: 'Invalid email address',
+                    timestamp: new Date().toISOString(),
+                    id: notificationId
+                });
+                return false;
             }
 
             const templateParams = {
-                to_email: memberData.email,
-                to_name: memberData.full_name,
+                to_email: memberData.email.trim(),
+                to_name: memberData.full_name || 'Member',
                 church_name: memberData.church_name || 'JAYC',
                 inviter_name: memberData.inviter_name || 'Church Inviter',
-                registration_date: new Date().toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                }),
-                program_name: 'Jesus Alive Youth Conference (JAYC)',
-                year: new Date().getFullYear()
+                registration_date: new Date().toLocaleDateString(),
+                program_name: 'Jesus Alive Youth Conference (JAYC)'
             };
+
+            // Double-check required fields for EmailJS
+            if (!templateParams.to_email) {
+                throw new Error('Recipient email is empty');
+            }
 
             let emailSent = false;
             let emailResponse = null;
 
-            // Try to send via EmailJS
             if (typeof emailjs !== 'undefined') {
                 try {
                     emailResponse = await emailjs.send(
@@ -64,12 +77,15 @@ class Notifications {
                     emailSent = true;
                     console.log('✅ Welcome email sent successfully to:', memberData.email);
                 } catch (emailError) {
-                    console.warn('⚠️ EmailJS failed, falling back to local logging:', emailError);
+                    console.warn('⚠️ EmailJS failed:', emailError);
+                    // Log the specific error for debugging
+                    if (emailError.text) {
+                        console.warn('EmailJS error details:', emailError.text);
+                    }
                     emailSent = false;
                 }
             }
 
-            // Log the notification
             this.logNotification({
                 type: 'EMAIL',
                 event: 'MEMBER_WELCOME',
@@ -101,39 +117,62 @@ class Notifications {
         }
     }
 
-    // Enhanced inviter notification
+    // Enhanced inviter notification with email validation
     static async sendInviterNotification(inviterEmail, memberData) {
         const notificationId = 'inviter_' + Date.now();
         
         try {
             console.log('📧 Sending inviter notification to:', inviterEmail);
 
+            // Validate inviter email
+            if (!this.isValidEmail(inviterEmail)) {
+                console.warn('⚠️ Invalid inviter email address:', inviterEmail);
+                this.logNotification({
+                    type: 'EMAIL',
+                    event: 'INVITER_NOTIFICATION',
+                    recipient: inviterEmail,
+                    data: { inviterEmail, memberData },
+                    success: false,
+                    error: 'Invalid inviter email address',
+                    timestamp: new Date().toISOString(),
+                    id: notificationId
+                });
+                return false;
+            }
+
             const templateParams = {
-                to_email: inviterEmail,
+                to_email: inviterEmail.trim(),
                 inviter_name: memberData.inviter_name,
                 member_name: memberData.full_name,
                 member_email: memberData.email || 'Not provided',
                 member_phone: memberData.phone || 'Not provided',
                 member_church: memberData.church_name,
-                registration_date: new Date().toLocaleDateString(),
-                total_members: '1' // You could calculate this from database
+                registration_date: new Date().toLocaleDateString()
             };
+
+            // Double-check required fields
+            if (!templateParams.to_email) {
+                throw new Error('Recipient email is empty');
+            }
 
             let emailSent = false;
             let emailResponse = null;
 
-            // Use the same template or create a new one for inviters
             if (typeof emailjs !== 'undefined') {
                 try {
+                    // Use the same template for now, or create a specific one
                     emailResponse = await emailjs.send(
                         this.emailConfig.serviceId,
-                        this.emailConfig.templateId, // Use same template or create new one
+                        this.emailConfig.templateId,
                         templateParams
                     );
                     emailSent = true;
                     console.log('✅ Inviter notification sent to:', inviterEmail);
                 } catch (emailError) {
                     console.warn('⚠️ Inviter email failed:', emailError);
+                    if (emailError.text) {
+                        console.warn('EmailJS error details:', emailError.text);
+                    }
                     emailSent = false;
                 }
             }
@@ -169,51 +208,34 @@ class Notifications {
         }
     }
 
-    // Enhanced logging system
+    // Rest of your methods remain the same...
     static logNotification(notification) {
         try {
             const logs = JSON.parse(localStorage.getItem('jayc_notification_logs') || '[]');
-            
-            // Add the notification
             logs.unshift(notification);
-            
-            // Keep only last 200 logs to prevent storage issues
-            if (logs.length > 200) {
-                logs.splice(200);
-            }
-            
+            if (logs.length > 200) logs.splice(200);
             localStorage.setItem('jayc_notification_logs', JSON.stringify(logs));
             
-            // Console output based on success
             const icon = notification.success ? '✅' : '❌';
             console.log(`${icon} ${notification.type} ${notification.event} - ${notification.recipient}`);
-            
         } catch (error) {
             console.error('❌ Failed to log notification:', error);
         }
     }
 
-    // Get notifications for admin panel
     static getNotifications(limit = 50, type = 'all') {
         try {
             let logs = JSON.parse(localStorage.getItem('jayc_notification_logs') || '[]');
-            
-            if (type !== 'all') {
-                logs = logs.filter(log => log.type === type);
-            }
-            
+            if (type !== 'all') logs = logs.filter(log => log.type === type);
             return logs.slice(0, limit);
         } catch (error) {
-            console.error('Error getting notifications:', error);
             return [];
         }
     }
 
-    // Get notification statistics
     static getStats() {
         try {
             const logs = JSON.parse(localStorage.getItem('jayc_notification_logs') || '[]');
-            
             return {
                 total: logs.length,
                 successful: logs.filter(log => log.success).length,
@@ -226,23 +248,18 @@ class Notifications {
         }
     }
 
-    // Clear notifications
     static clearLogs() {
         localStorage.removeItem('jayc_notification_logs');
         console.log('📧 Notification logs cleared');
     }
 }
 
-// Initialize when script loads
+// Initialize
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            Notifications.init();
-        }, 1000);
+        setTimeout(() => Notifications.init(), 1000);
     });
 }
 
-// Make available globally
 window.Notifications = Notifications;
-
-console.log('✅ Notifications system loaded');
+console.log('✅ Enhanced Notifications system loaded');
