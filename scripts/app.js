@@ -222,11 +222,7 @@ function setupFormHandlers() {
         console.log('Form data to register:', formData);
         
         // Validate required fields
-        if (!formData.full_name || !formData.email || !formData.phone || 
-            !formData.occupation || !formData.location) {
-            alert('Please fill in all required fields.');
-            return;
-        }
+       
         
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -326,3 +322,4 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
+
