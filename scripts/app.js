@@ -222,14 +222,7 @@ function setupFormHandlers() {
         console.log('Form data to register:', formData);
         
         // Validate required fields
-       
-        
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
-            alert('Please enter a valid email address.');
-            return;
-        }
+
         
         // Check if email already exists
         try {
@@ -322,4 +315,5 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
+
 
