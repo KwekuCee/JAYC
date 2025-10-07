@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inviters View - JAYC</title>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/styles/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <img src="/images/Logo.png" alt="Church Logo" class="logo-image">
+                    <span class="logo-text">JAYC Inviters</span>
+                </div>
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Registration
+                </a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> Registered Inviters</h2>
+                    <p>View inviters grouped by church</p>
+                </div>
+                
+                <div class="church-groups" id="churchGroups">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/scripts/database.js"></script>
+    <script>
+        // Load church groups
+        async function loadChurchGroups() {
+            const churchGroups = document.getElementById('churchGroups');
+            
+            try {
+                const inviters = await Database.getInviters();
+                const members = await Database.getMembers();
+                
+                // Group inviters by church
+                const churches = {};
+                inviters.forEach(inviter => {
+                    if (!churches[inviter.church_name]) {
+                        churches[inviter.church_name] = [];
+                    }
+                    churches[inviter.church_name].push(inviter);
+                });
+                
+                if (Object.keys(churches).length === 0) {
+                    churchGroups.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-church"></i>
+                            <p>No inviters registered yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Create church group sections
+                churchGroups.innerHTML = Object.keys(churches).map(churchName => {
+                    const churchInviters = churches[churchName];
+                    
+                    return `
+                        <div class="church-group">
+                            <h3><i class="fas fa-church"></i> ${churchName}</h3>
+                            <div class="inviters-grid">
+                                ${churchInviters.map(inviter => {
+                                    const memberCount = members.filter(member => 
+                                        member.inviter_name === inviter.full_name
+                                    ).length;
+                                    
+                                    return `
+                                        <div class="inviter-card">
+                                            <h4>${inviter.full_name}</h4>
+                                            <p><i class="fas fa-envelope"></i> ${inviter.email}</p>
+                                            <p><i class="fas fa-users"></i> ${memberCount} members registered</p>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                console.error('Error loading church groups:', error);
+                churchGroups.innerHTML = '<div class="empty-state"><p>Error loading data</p></div>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadChurchGroups);
+    </script>
+</body>
+</html>
