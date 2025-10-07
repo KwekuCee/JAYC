@@ -104,22 +104,6 @@
                         <i class="fas fa-download"></i>
                         Data Export
                     </a>
-                    <a href="index.html" class="sidebar-item">
-                        <i class="fas fa-home"></i>
-                        Main Dashboard
-                    </a>
-                    <a href="#analytics" class="sidebar-item" onclick="showSection('analytics')">
-                        <i class="fas fa-chart-bar"></i>
-                        Analytics & Reports
-                    </a>
-                    <a href="#attendance" class="sidebar-item" onclick="showSection('attendance')">
-                        <i class="fas fa-calendar-check"></i>
-                        Attendance Tracking
-                    </a>
-                    <a href="#notifications" class="sidebar-item" onclick="showSection('notifications')">
-                        <i class="fas fa-bell"></i>
-                        Notifications
-                    </a>
                 </div>
             </nav>
 
@@ -306,113 +290,6 @@
                     </div>
                 </section>
                 <!-- Analytics Section -->
-<section id="analytics" class="admin-section">
-    <div class="admin-content">
-        <!-- Analytics Overview -->
-        <div class="content-card" style="grid-column: 1 / -1;">
-            <div class="card-header">
-                <h2><i class="fas fa-chart-line"></i> Registration Analytics</h2>
-            </div>
-            <div class="card-body">
-                <div class="analytics-controls">
-                    <div class="filter-group">
-                        <label>Time Period:</label>
-                        <select id="analyticsPeriod" onchange="loadAnalytics()">
-                            <option value="7">Last 7 Days</option>
-                            <option value="30" selected>Last 30 Days</option>
-                            <option value="90">Last 90 Days</option>
-                            <option value="365">Last Year</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="exportAnalytics()">
-                        <i class="fas fa-download"></i> Export Data
-                    </button>
-                </div>
-                
-                <div class="analytics-grid">
-                    <!-- Stats Cards -->
-                    <div class="stats-overview">
-                        <div class="stat-card">
-                            <div class="stat-icon total-members">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="totalRegistrations">0</h3>
-                                <p>Total Registrations</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon recent">
-                                <i class="fas fa-calendar-day"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="todayRegistrations">0</h3>
-                                <p>Today's Registrations</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon churches">
-                                <i class="fas fa-church"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="activeChurches">0</h3>
-                                <p>Active Churches</p>
-                            </div>
-                        </div>
-                        
-                        <div class="stat-card">
-                            <div class="stat-icon total-inviters">
-                                <i class="fas fa-user-friends"></i>
-                            </div>
-                            <div class="stat-info">
-                                <h3 id="activeInviters">0</h3>
-                                <p>Active Inviters</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts -->
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-chart-bar"></i> Registration Trends</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="trendsChart" class="chart-container">
-                                <canvas id="trendsCanvas"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="card-header">
-                            <h3><i class="fas fa-chart-pie"></i> Church Distribution</h3>
-                        </div>
-                        <div class="card-body">
-                            <div id="distributionChart" class="chart-container">
-                                <canvas id="distributionCanvas"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Inviter Performance -->
-                    <div class="content-card" style="grid-column: 1 / -1;">
-                        <div class="card-header">
-                            <h3><i class="fas fa-trophy"></i> Top Inviters</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="inviter-performance" id="inviterPerformance">
-                                <!-- Top inviters will be loaded here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
 <!-- Attendance Section -->
 <section id="attendance" class="admin-section">
     <div class="admin-content">
@@ -524,6 +401,7 @@
     </script>
 </body>
 </html>
+
 
 
 
