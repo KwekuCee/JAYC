@@ -21,11 +21,12 @@
             text-align: center;
             margin: 20px 0;
             position: relative;
-            min-height: 400px;
+            min-height: 500px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
         
         .flyer-image {
@@ -35,12 +36,14 @@
             object-fit: cover;
             border: 5px solid white;
             margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         
         .flyer-name {
             font-size: 2.5em;
             font-weight: bold;
             margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
         .flyer-details {
@@ -53,16 +56,57 @@
             font-size: 1.5em;
             margin: 15px 0;
             font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 25px;
         }
         
         .flyer-message {
             font-size: 1.1em;
             margin: 20px 0;
             font-style: italic;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+        
+        .flyer-hashtags {
+            margin-top: 20px;
+            font-size: 1em;
+            opacity: 0.8;
         }
         
         .download-btn {
             margin: 20px 0;
+        }
+        
+        .flyer-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .event-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            border-radius: 12px;
         }
     </style>
 </head>
@@ -85,7 +129,7 @@
             <div class="card">
                 <div class="card-header">
                     <h2><i class="fas fa-share-square"></i> Social Media Flyer Generator</h2>
-                    <p>Create beautiful flyers for social media sharing</p>
+                    <p>Create beautiful flyers to share your JAYC registration on social media</p>
                 </div>
                 
                 <div class="registration-form">
@@ -95,7 +139,9 @@
                                 <i class="fas fa-envelope"></i>
                                 Your Email Address *
                             </label>
-                            <input type="email" id="memberEmail" name="email" required>
+                            <input type="email" id="memberEmail" name="email" required 
+                                   placeholder="Enter the email you registered with">
+                            <small class="help-text">Must match your registration email</small>
                         </div>
 
                         <div class="form-group">
@@ -103,16 +149,29 @@
                                 <i class="fas fa-camera"></i>
                                 Upload Your Photo *
                             </label>
-                            <input type="file" id="memberPhoto" name="photo" accept="image/*" required>
-                            <small class="help-text">Upload a clear portrait photo for your flyer</small>
+                            <input type="file" id="memberPhoto" name="photo" accept="image/*" required
+                                   onchange="previewPhoto(this)">
+                            <img id="photoPreview" class="photo-preview" alt="Photo Preview">
+                            <small class="help-text">Upload a clear portrait photo (max 5MB)</small>
                         </div>
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn btn-primary" onclick="generateFlyer()">
+                        <button type="button" class="btn btn-primary" onclick="generateFlyer()" id="generateBtn">
                             <i class="fas fa-magic"></i>
                             Generate My Flyer
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loadingState">
+                <div class="card">
+                    <div class="card-body" style="text-align: center; padding: 40px;">
+                        <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary); margin-bottom: 20px;"></i>
+                        <h3>Generating Your Flyer...</h3>
+                        <p>Please wait while we create your personalized flyer</p>
                     </div>
                 </div>
             </div>
@@ -121,28 +180,48 @@
             <div class="card" id="flyerPreview" style="display: none;">
                 <div class="card-header">
                     <h2><i class="fas fa-eye"></i> Your Flyer Preview</h2>
-                    <p>Download and share on social media</p>
+                    <p>Download and share on social media to invite others!</p>
                 </div>
                 
                 <div class="flyer-container">
                     <div class="flyer-preview" id="flyerCanvas">
+                        <!-- Church Logo -->
+                        <img src="/images/Logo.png" class="event-logo" alt="JAYC Logo">
+                        
+                        <!-- Member Photo -->
                         <img id="previewImage" class="flyer-image" src="" alt="Member Photo">
+                        
+                        <!-- Member Details -->
                         <div class="flyer-name" id="previewName">Member Name</div>
                         <div class="flyer-details" id="previewChurch">Church Name</div>
                         <div class="flyer-church">JAYC 2024</div>
-                        <div class="flyer-message">"I'm excited to be part of Jesus Alive Youth Conference!"</div>
-                        <div class="flyer-details">#JAYC2024 #JesusAlive</div>
+                        
+                        <!-- Dynamic Message -->
+                        <div class="flyer-message" id="previewMessage">
+                            "I'm excited to be part of Jesus Alive Youth Conference!"
+                        </div>
+                        
+                        <!-- Hashtags -->
+                        <div class="flyer-hashtags">
+                            #JAYC2024 #JesusAlive #YouthConference #GraceCityYouth
+                        </div>
                     </div>
                     
                     <div class="form-actions">
-                        <button class="btn btn-success download-btn" onclick="downloadFlyer()">
-                            <i class="fas fa-download"></i>
-                            Download Flyer
-                        </button>
-                        <button class="btn btn-info" onclick="shareFlyer()">
-                            <i class="fas fa-share"></i>
-                            Share on Social Media
-                        </button>
+                        <div class="flyer-actions">
+                            <button class="btn btn-success btn-lg" onclick="downloadFlyer()">
+                                <i class="fas fa-download"></i>
+                                Download Flyer
+                            </button>
+                            <button class="btn btn-info btn-lg" onclick="shareFlyer()">
+                                <i class="fas fa-share"></i>
+                                Share Flyer
+                            </button>
+                            <button class="btn btn-warning btn-lg" onclick="createAnother()">
+                                <i class="fas fa-plus"></i>
+                                Create Another
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -154,64 +233,172 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/scripts/database.js"></script>
     <script>
+        // Photo preview function
+        function previewPhoto(input) {
+            const preview = document.getElementById('photoPreview');
+            const file = input.files[0];
+            
+            if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Please select an image smaller than 5MB');
+                    input.value = '';
+                    preview.style.display = 'none';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        // Generate flyer function
         async function generateFlyer() {
             const email = document.getElementById('memberEmail').value.trim();
             const photoInput = document.getElementById('memberPhoto');
+            const generateBtn = document.getElementById('generateBtn');
             
             if (!email || !photoInput.files[0]) {
                 alert('Please enter your email and upload a photo.');
                 return;
             }
 
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loadingState').style.display = 'block';
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
             try {
-                // Get member data
+                // Get member data from database
+                console.log('Looking up member with email:', email);
                 const members = await Database.getMembers();
-                const member = members.find(m => m.email === email);
+                const member = members.find(m => m.email.toLowerCase() === email.toLowerCase());
                 
                 if (!member) {
-                    alert('No registration found with this email. Please check your email address.');
-                    return;
+                    throw new Error('No registration found with this email. Please check your email address or contact support.');
                 }
+
+                console.log('Member found:', member);
 
                 // Read and display photo
                 const file = photoInput.files[0];
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
+                    // Update flyer content
                     document.getElementById('previewImage').src = e.target.result;
                     document.getElementById('previewName').textContent = member.full_name;
                     document.getElementById('previewChurch').textContent = `${member.church_name} • Invited by: ${member.inviter_name}`;
                     
-                    // Show flyer preview
+                    // Generate personalized message
+                    const messages = [
+                        `"I'm registered for JAYC 2024! Can't wait to experience God's presence with amazing youth!"`,
+                        `"Excited to join Jesus Alive Youth Conference! Ready for transformation and revival!"`,
+                        `"See you at JAYC 2024! Get ready for an unforgettable encounter with God!"`,
+                        `"Registered and ready! JAYC 2024 is going to be life-changing!"`,
+                        `"Counting down to JAYC 2024! Join me for this powerful youth conference!"`
+                    ];
+                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+                    document.getElementById('previewMessage').textContent = randomMessage;
+                    
+                    // Hide loading, show flyer
+                    document.getElementById('loadingState').style.display = 'none';
                     document.getElementById('flyerPreview').style.display = 'block';
+                    
+                    // Reset button
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate My Flyer';
+                    
+                    // Scroll to flyer
+                    document.getElementById('flyerPreview').scrollIntoView({ behavior: 'smooth' });
+                };
+                
+                reader.onerror = function() {
+                    throw new Error('Error reading photo file. Please try another image.');
                 };
                 
                 reader.readAsDataURL(file);
                 
             } catch (error) {
                 console.error('Error generating flyer:', error);
-                alert('Error generating flyer. Please try again.');
+                
+                // Hide loading
+                document.getElementById('loadingState').style.display = 'none';
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate My Flyer';
+                
+                alert(error.message || 'Error generating flyer. Please try again.');
             }
         }
 
+        // Download flyer function
         function downloadFlyer() {
-            html2canvas(document.getElementById('flyerCanvas')).then(canvas => {
+            const downloadBtn = document.querySelector('.btn-success');
+            const originalText = downloadBtn.innerHTML;
+            
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
+            
+            html2canvas(document.getElementById('flyerCanvas'), {
+                scale: 2, // Higher quality
+                useCORS: true,
+                logging: false
+            }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = 'JAYC-Flyer.png';
+                const memberName = document.getElementById('previewName').textContent.replace(/\s+/g, '_');
+                link.download = `JAYC_Flyer_${memberName}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
+                
+                // Reset button
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = originalText;
+                
+                // Show success message
+                alert('Flyer downloaded successfully! Share it on your social media.');
+            }).catch(error => {
+                console.error('Error downloading flyer:', error);
+                alert('Error downloading flyer. Please try again.');
+                
+                // Reset button
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = originalText;
             });
         }
 
+        // Share flyer function
         function shareFlyer() {
             if (navigator.share) {
-                html2canvas(document.getElementById('flyerCanvas')).then(canvas => {
+                html2canvas(document.getElementById('flyerCanvas'), {
+                    scale: 2,
+                    useCORS: true
+                }).then(canvas => {
                     canvas.toBlob(blob => {
                         const file = new File([blob], 'JAYC-Flyer.png', { type: 'image/png' });
+                        const memberName = document.getElementById('previewName').textContent;
+                        
                         navigator.share({
                             files: [file],
-                            title: 'JAYC Registration',
-                            text: 'Check out my JAYC registration flyer!'
+                            title: 'My JAYC Registration',
+                            text: `I'm registered for Jesus Alive Youth Conference 2024! ${memberName} is ready for an amazing experience! #JAYC2024`
+                        }).then(() => {
+                            console.log('Flyer shared successfully');
+                        }).catch(error => {
+                            console.error('Error sharing:', error);
+                            alert('Share cancelled or failed. You can download and share manually.');
                         });
                     });
                 });
@@ -219,6 +406,27 @@
                 alert('Web Share API not supported in your browser. Please download and share manually.');
             }
         }
+
+        // Create another flyer
+        function createAnother() {
+            // Reset form
+            document.getElementById('memberEmail').value = '';
+            document.getElementById('memberPhoto').value = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('flyerPreview').style.display = 'none';
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Enter key support for email field
+        document.getElementById('memberEmail').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateFlyer();
+            }
+        });
+
+        console.log('Flyer generator loaded successfully');
     </script>
 </body>
 </html>
