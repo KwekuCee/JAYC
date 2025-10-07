@@ -5,7 +5,7 @@ class Notifications {
         templateId: 'template_k9mhapt',
         userId: '2BTr21gGjQQVLvgFR'
     };
-
+ 
     static init() {
         // Initialize EmailJS if available
         if (typeof emailjs !== 'undefined') {
