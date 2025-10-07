@@ -253,6 +253,21 @@ async function registerMember(memberData) {
         
         if (newMember) {
             console.log('Member registered successfully in database');
+
+// ✅ SEND NOTIFICATIONS
+            try {
+                // Send welcome email to member
+                await Notifications.sendMemberWelcome(memberData);
+                
+                // Find inviter and send notification
+                const inviters = await Database.getInviters();
+                const inviter = inviters.find(inv => inv.full_name === memberData.inviter_name);
+                if (inviter) {
+                    await Notifications.sendInviterNotification(inviter.email, memberData);
+                }
+            } catch (notificationError) {
+                console.error('Notification failed, but registration succeeded:', notificationError);
+            }
             
             // Show success modal
             showSuccessModal();
@@ -315,5 +330,6 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
+
 
 
