@@ -1,8 +1,9 @@
-// Enhanced Notifications Service with better email handling
+// Enhanced Notifications Service with separate templates
 class Notifications {
     static emailConfig = {
         serviceId: 'service_ekvxkrl',
-        templateId: 'template_k9mhapt',
+        templateId: 'template_k9mhapt', // Welcome template
+        inviterTemplateId: 'template_82vfdzo', // Replace with actual inviter template ID
         userId: '2BTr21gGjQQVLvgFR'
     };
 
@@ -18,6 +19,7 @@ class Notifications {
             try {
                 emailjs.init(this.emailConfig.userId);
                 console.log('✅ EmailJS initialized successfully');
+                console.log('📧 Templates: Welcome =', this.emailConfig.templateId, 'Inviter =', this.emailConfig.inviterTemplateId);
                 return true;
             } catch (error) {
                 console.warn('⚠️ EmailJS initialization failed:', error);
@@ -27,23 +29,23 @@ class Notifications {
         return false;
     }
 
-    // Enhanced member welcome email with better error handling
+    // Send welcome email to NEW MEMBER
     static async sendMemberWelcome(memberData) {
         const notificationId = 'welcome_' + Date.now();
         
         try {
-            console.log('📧 Attempting to send welcome email to:', memberData.email);
+            console.log('📧 Sending WELCOME email to new member:', memberData.email);
 
-            // Validate email
+            // Validate member email
             if (!this.isValidEmail(memberData.email)) {
-                console.warn('⚠️ Invalid email address:', memberData.email);
+                console.warn('⚠️ Invalid member email address:', memberData.email);
                 this.logNotification({
                     type: 'EMAIL',
                     event: 'MEMBER_WELCOME',
                     recipient: memberData.email,
                     data: memberData,
                     success: false,
-                    error: 'Invalid email address',
+                    error: 'Invalid member email address',
                     timestamp: new Date().toISOString(),
                     id: notificationId
                 });
@@ -56,29 +58,27 @@ class Notifications {
                 church_name: memberData.church_name || 'JAYC',
                 inviter_name: memberData.inviter_name || 'Church Inviter',
                 registration_date: new Date().toLocaleDateString(),
-                program_name: 'Jesus Alive Youth Conference (JAYC)'
+                program_name: 'Jesus Alive Youth Conference (JAYC)',
+                year: new Date().getFullYear()
             };
 
-            // Double-check required fields for EmailJS
-            if (!templateParams.to_email) {
-                throw new Error('Recipient email is empty');
-            }
+            console.log('📧 Welcome template params:', templateParams);
 
             let emailSent = false;
             let emailResponse = null;
 
             if (typeof emailjs !== 'undefined') {
                 try {
+                    // Use WELCOME template for new member
                     emailResponse = await emailjs.send(
                         this.emailConfig.serviceId,
-                        this.emailConfig.templateId,
+                        this.emailConfig.templateId, // Welcome template
                         templateParams
                     );
                     emailSent = true;
-                    console.log('✅ Welcome email sent successfully to:', memberData.email);
+                    console.log('✅ Welcome email sent successfully to new member:', memberData.email);
                 } catch (emailError) {
-                    console.warn('⚠️ EmailJS failed:', emailError);
-                    // Log the specific error for debugging
+                    console.warn('⚠️ Welcome email failed:', emailError);
                     if (emailError.text) {
                         console.warn('EmailJS error details:', emailError.text);
                     }
@@ -117,12 +117,12 @@ class Notifications {
         }
     }
 
-    // Enhanced inviter notification with email validation
+    // Send notification to INVITER about new member
     static async sendInviterNotification(inviterEmail, memberData) {
         const notificationId = 'inviter_' + Date.now();
         
         try {
-            console.log('📧 Sending inviter notification to:', inviterEmail);
+            console.log('📧 Sending INVITER notification to:', inviterEmail);
 
             // Validate inviter email
             if (!this.isValidEmail(inviterEmail)) {
@@ -147,29 +147,28 @@ class Notifications {
                 member_email: memberData.email || 'Not provided',
                 member_phone: memberData.phone || 'Not provided',
                 member_church: memberData.church_name,
-                registration_date: new Date().toLocaleDateString()
+                registration_date: new Date().toLocaleDateString(),
+                total_members: '1', // You could calculate actual count from database
+                program_name: 'Jesus Alive Youth Conference (JAYC)'
             };
 
-            // Double-check required fields
-            if (!templateParams.to_email) {
-                throw new Error('Recipient email is empty');
-            }
+            console.log('📧 Inviter template params:', templateParams);
 
             let emailSent = false;
             let emailResponse = null;
 
             if (typeof emailjs !== 'undefined') {
                 try {
-                    // Use the same template for now, or create a specific one
+                    // Use INVITER template for inviter notification
                     emailResponse = await emailjs.send(
                         this.emailConfig.serviceId,
-                        this.emailConfig.templateId,
+                        this.emailConfig.inviterTemplateId, // Inviter template
                         templateParams
                     );
                     emailSent = true;
-                    console.log('✅ Inviter notification sent to:', inviterEmail);
+                    console.log('✅ Inviter notification sent successfully to:', inviterEmail);
                 } catch (emailError) {
-                    console.warn('⚠️ Inviter email failed:', emailError);
+                    console.warn('⚠️ Inviter notification failed:', emailError);
                     if (emailError.text) {
                         console.warn('EmailJS error details:', emailError.text);
                     }
@@ -208,7 +207,7 @@ class Notifications {
         }
     }
 
-    // Rest of your methods remain the same...
+    // Log notification
     static logNotification(notification) {
         try {
             const logs = JSON.parse(localStorage.getItem('jayc_notification_logs') || '[]');
@@ -262,4 +261,4 @@ if (typeof document !== 'undefined') {
 }
 
 window.Notifications = Notifications;
-console.log('✅ Enhanced Notifications system loaded');
+console.log('✅ Dual-template Notifications system loaded');
