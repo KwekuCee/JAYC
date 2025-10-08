@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Media Flyer - JAYC</title>
+    <title>JAYC Flyer Generator</title>
     <link rel="stylesheet" href="/styles/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -13,66 +13,52 @@
             padding: 20px;
         }
         
-        .flyer-preview {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-            text-align: center;
-            margin: 20px 0;
+        .flyer-template {
             position: relative;
-            min-height: 500px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            width: 800px;
+            height: 1000px;
+            margin: 20px auto;
+            border-radius: 15px;
+            overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
         
-        .flyer-image {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
+        .base-flyer {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border: 5px solid white;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
         
-        .flyer-name {
+        .photo-slot {
+            position: absolute;
+            width: 250px; /* Adjust to match your Photoshop blank space */
+            height: 250px; /* Adjust to match your Photoshop blank space */
+            border-radius: 50%; /* Change if your slot is rectangular */
+            overflow: hidden;
+            top: 300px; /* Position of your blank space */
+            left: 275px; /* Position of your blank space */
+            z-index: 2;
+        }
+        
+        .member-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Name display area */
+        .name-slot {
+            position: absolute;
+            top: 580px; /* Position below the photo */
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white; /* Change color to match your flyer */
             font-size: 2.5em;
             font-weight: bold;
-            margin: 10px 0;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        
-        .flyer-details {
-            font-size: 1.2em;
-            margin: 5px 0;
-            opacity: 0.9;
-        }
-        
-        .flyer-church {
-            font-size: 1.5em;
-            margin: 15px 0;
-            font-weight: 600;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 20px;
-            border-radius: 25px;
-        }
-        
-        .flyer-message {
-            font-size: 1.1em;
-            margin: 20px 0;
-            font-style: italic;
-            max-width: 400px;
-            line-height: 1.5;
-        }
-        
-        .flyer-hashtags {
-            margin-top: 20px;
-            font-size: 1em;
-            opacity: 0.8;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+            z-index: 2;
+            font-family: Arial, sans-serif;
         }
         
         .download-btn {
@@ -93,8 +79,8 @@
         }
         
         .photo-preview {
-            width: 100px;
-            height: 100px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid var(--primary);
@@ -102,11 +88,33 @@
             display: none;
         }
         
-        .event-logo {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            border-radius: 12px;
+        .instructions {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .upload-area {
+            text-align: center;
+            padding: 30px;
+            border: 2px dashed var(--primary);
+            border-radius: 15px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            background: rgba(67, 97, 238, 0.1);
+            border-color: var(--secondary);
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            color: var(--primary);
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -128,36 +136,37 @@
         <main class="main-content">
             <div class="card">
                 <div class="card-header">
-                    <h2><i class="fas fa-share-square"></i> Social Media Flyer Generator</h2>
-                    <p>Create beautiful flyers to share your JAYC registration on social media</p>
+                    <h2><i class="fas fa-camera"></i> Create Your JAYC Flyer</h2>
+                    <p>Upload your photo to generate a personalized JAYC flyer with your name</p>
+                </div>
+                
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> How It Works:</h3>
+                    <p>1. Upload a clear portrait photo<br>
+                       2. We'll automatically add your name to the flyer<br>
+                       3. Download your personalized JAYC flyer<br>
+                       4. Share on social media to invite others!</p>
                 </div>
                 
                 <div class="registration-form">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="memberEmail">
-                                <i class="fas fa-envelope"></i>
-                                Your Email Address *
-                            </label>
-                            <input type="email" id="memberEmail" name="email" required 
-                                   placeholder="Enter the email you registered with">
-                            <small class="help-text">Must match your registration email</small>
+                    <!-- Simple Upload Area -->
+                    <div class="upload-area" onclick="document.getElementById('memberPhoto').click()">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
                         </div>
-
-                        <div class="form-group">
-                            <label for="memberPhoto">
-                                <i class="fas fa-camera"></i>
-                                Upload Your Photo *
-                            </label>
-                            <input type="file" id="memberPhoto" name="photo" accept="image/*" required
-                                   onchange="previewPhoto(this)">
-                            <img id="photoPreview" class="photo-preview" alt="Photo Preview">
-                            <small class="help-text">Upload a clear portrait photo (max 5MB)</small>
-                        </div>
+                        <h3>Click to Upload Your Photo</h3>
+                        <p>Choose a clear portrait photo (max 5MB)</p>
+                        <input type="file" id="memberPhoto" name="photo" accept="image/*" required
+                               onchange="previewPhoto(this)" style="display: none;">
+                    </div>
+                    
+                    <!-- Photo Preview -->
+                    <div style="text-align: center;">
+                        <img id="photoPreview" class="photo-preview" alt="Photo Preview">
                     </div>
 
                     <div class="form-actions">
-                        <button type="button" class="btn btn-primary" onclick="generateFlyer()" id="generateBtn">
+                        <button type="button" class="btn btn-primary btn-lg" onclick="generateFlyer()" id="generateBtn">
                             <i class="fas fa-magic"></i>
                             Generate My Flyer
                         </button>
@@ -170,8 +179,8 @@
                 <div class="card">
                     <div class="card-body" style="text-align: center; padding: 40px;">
                         <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary); margin-bottom: 20px;"></i>
-                        <h3>Generating Your Flyer...</h3>
-                        <p>Please wait while we create your personalized flyer</p>
+                        <h3>Creating Your Flyer...</h3>
+                        <p>Adding your photo and name to the official JAYC design</p>
                     </div>
                 </div>
             </div>
@@ -179,31 +188,24 @@
             <!-- Flyer Preview -->
             <div class="card" id="flyerPreview" style="display: none;">
                 <div class="card-header">
-                    <h2><i class="fas fa-eye"></i> Your Flyer Preview</h2>
-                    <p>Download and share on social media to invite others!</p>
+                    <h2><i class="fas fa-image"></i> Your Personalized JAYC Flyer</h2>
+                    <p>Download and share to let everyone know you're coming to JAYC!</p>
                 </div>
                 
                 <div class="flyer-container">
-                    <div class="flyer-preview" id="flyerCanvas">
-                        <!-- Church Logo -->
-                        <img src="/images/Logo.png" class="event-logo" alt="JAYC Logo">
+                    <!-- This is where your Photoshop flyer goes -->
+                    <div class="flyer-template" id="flyerCanvas">
+                        <!-- Your base flyer image -->
+                        <img src="/images/jayc-flyer-template.jpg" class="base-flyer" alt="JAYC Flyer Template" id="baseFlyer">
                         
-                        <!-- Member Photo -->
-                        <img id="previewImage" class="flyer-image" src="" alt="Member Photo">
-                        
-                        <!-- Member Details -->
-                        <div class="flyer-name" id="previewName">Member Name</div>
-                        <div class="flyer-details" id="previewChurch">Church Name</div>
-                        <div class="flyer-church">JAYC 2024</div>
-                        
-                        <!-- Dynamic Message -->
-                        <div class="flyer-message" id="previewMessage">
-                            "I'm excited to be part of Jesus Alive Youth Conference!"
+                        <!-- The photo slot - position this over the blank space in your flyer -->
+                        <div class="photo-slot">
+                            <img id="memberPhotoSlot" class="member-photo" src="" alt="Your Photo">
                         </div>
                         
-                        <!-- Hashtags -->
-                        <div class="flyer-hashtags">
-                            #JAYC2024 #JesusAlive #YouthConference #GraceCityYouth
+                        <!-- Name display area -->
+                        <div class="name-slot" id="nameDisplay">
+                            Member Name
                         </div>
                     </div>
                     
@@ -215,11 +217,11 @@
                             </button>
                             <button class="btn btn-info btn-lg" onclick="shareFlyer()">
                                 <i class="fas fa-share"></i>
-                                Share Flyer
+                                Share on Social Media
                             </button>
                             <button class="btn btn-warning btn-lg" onclick="createAnother()">
-                                <i class="fas fa-plus"></i>
-                                Create Another
+                                <i class="fas fa-redo"></i>
+                                Create Another Flyer
                             </button>
                         </div>
                     </div>
@@ -230,16 +232,15 @@
 
     <!-- HTML2Canvas for flyer download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/scripts/database.js"></script>
     <script>
+        let currentMemberName = "JAYC Member";
+
         // Photo preview function
         function previewPhoto(input) {
             const preview = document.getElementById('photoPreview');
             const file = input.files[0];
             
             if (file) {
-                // Check file size (max 5MB)
                 if (file.size > 5 * 1024 * 1024) {
                     alert('Please select an image smaller than 5MB');
                     input.value = '';
@@ -251,6 +252,9 @@
                 reader.onload = function(e) {
                     preview.src = e.target.result;
                     preview.style.display = 'block';
+                    
+                    // Ask for the person's name
+                    askForName();
                 };
                 reader.readAsDataURL(file);
             } else {
@@ -258,21 +262,31 @@
             }
         }
 
+        // Ask for the person's name
+        function askForName() {
+            const name = prompt('Please enter your name for the flyer:', '');
+            if (name && name.trim() !== '') {
+                currentMemberName = name.trim();
+            } else if (name === '') {
+                alert('Please enter your name to create the flyer.');
+                document.getElementById('memberPhoto').value = '';
+                document.getElementById('photoPreview').style.display = 'none';
+            }
+        }
+
         // Generate flyer function
-        async function generateFlyer() {
-            const email = document.getElementById('memberEmail').value.trim();
+        function generateFlyer() {
             const photoInput = document.getElementById('memberPhoto');
             const generateBtn = document.getElementById('generateBtn');
             
-            if (!email || !photoInput.files[0]) {
-                alert('Please enter your email and upload a photo.');
+            if (!photoInput.files[0]) {
+                alert('Please upload a photo first.');
                 return;
             }
 
-            // Validate email format
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                alert('Please enter a valid email address.');
+            if (!currentMemberName || currentMemberName === 'JAYC Member') {
+                alert('Please enter your name.');
+                askForName();
                 return;
             }
 
@@ -282,37 +296,16 @@
             generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
 
             try {
-                // Get member data from database
-                console.log('Looking up member with email:', email);
-                const members = await Database.getMembers();
-                const member = members.find(m => m.email.toLowerCase() === email.toLowerCase());
-                
-                if (!member) {
-                    throw new Error('No registration found with this email. Please check your email address or contact support.');
-                }
-
-                console.log('Member found:', member);
-
-                // Read and display photo
+                // Read and place photo
                 const file = photoInput.files[0];
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    // Update flyer content
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('previewName').textContent = member.full_name;
-                    document.getElementById('previewChurch').textContent = `${member.church_name} • Invited by: ${member.inviter_name}`;
+                    // Place photo in the slot
+                    document.getElementById('memberPhotoSlot').src = e.target.result;
                     
-                    // Generate personalized message
-                    const messages = [
-                        `"I'm registered for JAYC 2024! Can't wait to experience God's presence with amazing youth!"`,
-                        `"Excited to join Jesus Alive Youth Conference! Ready for transformation and revival!"`,
-                        `"See you at JAYC 2024! Get ready for an unforgettable encounter with God!"`,
-                        `"Registered and ready! JAYC 2024 is going to be life-changing!"`,
-                        `"Counting down to JAYC 2024! Join me for this powerful youth conference!"`
-                    ];
-                    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-                    document.getElementById('previewMessage').textContent = randomMessage;
+                    // Display the name
+                    document.getElementById('nameDisplay').textContent = currentMemberName;
                     
                     // Hide loading, show flyer
                     document.getElementById('loadingState').style.display = 'none';
@@ -335,12 +328,11 @@
             } catch (error) {
                 console.error('Error generating flyer:', error);
                 
-                // Hide loading
                 document.getElementById('loadingState').style.display = 'none';
                 generateBtn.disabled = false;
                 generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate My Flyer';
                 
-                alert(error.message || 'Error generating flyer. Please try again.');
+                alert('Error generating flyer. Please try again.');
             }
         }
 
@@ -353,27 +345,24 @@
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
             
             html2canvas(document.getElementById('flyerCanvas'), {
-                scale: 2, // Higher quality
+                scale: 2, // High quality
                 useCORS: true,
-                logging: false
+                logging: false,
+                backgroundColor: null
             }).then(canvas => {
                 const link = document.createElement('a');
-                const memberName = document.getElementById('previewName').textContent.replace(/\s+/g, '_');
-                link.download = `JAYC_Flyer_${memberName}.png`;
+                const fileName = currentMemberName.replace(/\s+/g, '_');
+                link.download = `JAYC_Flyer_${fileName}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
                 
-                // Reset button
                 downloadBtn.disabled = false;
                 downloadBtn.innerHTML = originalText;
                 
-                // Show success message
-                alert('Flyer downloaded successfully! Share it on your social media.');
+                alert('Flyer downloaded successfully! Share it on social media to invite others.');
             }).catch(error => {
                 console.error('Error downloading flyer:', error);
                 alert('Error downloading flyer. Please try again.');
-                
-                // Reset button
                 downloadBtn.disabled = false;
                 downloadBtn.innerHTML = originalText;
             });
@@ -387,18 +376,18 @@
                     useCORS: true
                 }).then(canvas => {
                     canvas.toBlob(blob => {
-                        const file = new File([blob], 'JAYC-Flyer.png', { type: 'image/png' });
-                        const memberName = document.getElementById('previewName').textContent;
+                        const fileName = currentMemberName.replace(/\s+/g, '_');
+                        const file = new File([blob], `JAYC_Flyer_${fileName}.png`, { type: 'image/png' });
                         
                         navigator.share({
                             files: [file],
-                            title: 'My JAYC Registration',
-                            text: `I'm registered for Jesus Alive Youth Conference 2024! ${memberName} is ready for an amazing experience! #JAYC2024`
+                            title: 'My JAYC Flyer',
+                            text: `I'm ${currentMemberName} and I'm registered for Jesus Alive Youth Conference 2024! Check out my personalized flyer! #JAYC2024`
                         }).then(() => {
                             console.log('Flyer shared successfully');
                         }).catch(error => {
                             console.error('Error sharing:', error);
-                            alert('Share cancelled or failed. You can download and share manually.');
+                            alert('Share cancelled or failed. Please download and share manually.');
                         });
                     });
                 });
@@ -409,24 +398,43 @@
 
         // Create another flyer
         function createAnother() {
-            // Reset form
-            document.getElementById('memberEmail').value = '';
             document.getElementById('memberPhoto').value = '';
             document.getElementById('photoPreview').style.display = 'none';
             document.getElementById('flyerPreview').style.display = 'none';
-            
-            // Scroll to top
+            currentMemberName = "JAYC Member";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Enter key support for email field
-        document.getElementById('memberEmail').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                generateFlyer();
-            }
+        // Drag and drop support
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.querySelector('.upload-area');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.style.background = 'rgba(67, 97, 238, 0.2)';
+                uploadArea.style.borderColor = 'var(--secondary)';
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.style.background = '';
+                uploadArea.style.borderColor = 'var(--primary)';
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.style.background = '';
+                uploadArea.style.borderColor = 'var(--primary)';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    document.getElementById('memberPhoto').files = files;
+                    previewPhoto(document.getElementById('memberPhoto'));
+                }
+            });
         });
 
-        console.log('Flyer generator loaded successfully');
+        console.log('JAYC Flyer Generator loaded successfully');
     </script>
 </body>
 </html>
