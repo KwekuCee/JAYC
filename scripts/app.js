@@ -221,21 +221,6 @@ function setupFormHandlers() {
         
         console.log('Form data to register:', formData);
         
-        // Validate required fields
-
-        
-        // Check if email already exists
-        try {
-            const existingMembers = await Database.getMembers();
-            if (existingMembers.some(member => member.email === formData.email)) {
-                alert('This email is already registered. Please use a different email.');
-                return;
-            }
-        } catch (error) {
-            console.error('Error checking existing members:', error);
-            // Continue with registration even if check fails
-        }
-        
         // Register member
         registerMember(formData);
     });
@@ -330,6 +315,7 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
+
 
 
 
