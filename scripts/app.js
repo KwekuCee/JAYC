@@ -207,10 +207,10 @@ function setupFormHandlers() {
             return;
         }
         
-        // Get form values
+        // Get form values - email is now optional
         const formData = {
             full_name: document.getElementById('fullName').value.trim(),
-            email: document.getElementById('email').value.trim(),
+            email: document.getElementById('email').value.trim() || null, // Allow null
             phone: document.getElementById('phone').value.trim(),
             occupation: document.getElementById('occupation').value.trim(),
             location: document.getElementById('location').value.trim(),
@@ -220,6 +220,12 @@ function setupFormHandlers() {
         };
         
         console.log('Form data to register:', formData);
+        
+        // Validate required fields (email is no longer required)
+        if (!formData.full_name || !formData.phone || !formData.occupation || !formData.location) {
+            alert('Please fill in all required fields: Name, Phone, Occupation, and Location.');
+            return;
+        }
         
         // Register member
         registerMember(formData);
@@ -239,7 +245,7 @@ async function registerMember(memberData) {
         if (newMember) {
             console.log('Member registered successfully in database');
 
-// ✅ SEND NOTIFICATIONS
+            // ✅ SEND NOTIFICATIONS
             try {
                 // Send welcome email to member
                 await Notifications.sendMemberWelcome(memberData);
@@ -270,7 +276,7 @@ async function registerMember(memberData) {
     } catch (error) {
         console.error('Error registering member:', error);
         if (error.message.includes('duplicate key') || error.message.includes('already exists')) {
-            alert('This email is already registered. Please use a different email.');
+            alert('Registration failed. This email may already be registered. Please try using a different email or leave the email field empty.');
         } else {
             alert('Error registering member. Please try again.');
         }
@@ -315,7 +321,3 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
-
-
-
-
