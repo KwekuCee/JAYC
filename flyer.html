@@ -4,115 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JAYC Flyer Generator</title>
+    <link rel="stylesheet" href="/styles/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --success: #4cc9f0;
-            --light: #f8f9fa;
-            --dark: #212529;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo-image {
-            height: 50px;
-            width: auto;
-        }
-        
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        
-        .back-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: var(--primary);
-            color: white;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .back-btn:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-        }
-        
-        .card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-header {
-            padding: 25px 30px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .card-header h2 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--dark);
-            margin-bottom: 10px;
-        }
-        
-        .card-header p {
-            color: #6c757d;
-            font-size: 16px;
-        }
-        
-        .card-body {
-            padding: 30px;
-        }
-        
         .flyer-container {
             max-width: 1000px;
             margin: 0 auto;
@@ -121,10 +15,8 @@
         
         .flyer-template {
             position: relative;
-            width: 100%;
-            max-width: 800px;
-            height: auto;
-            aspect-ratio: 8/10;
+            width: 1000px;
+            height: 1000px;
             margin: 20px auto;
             border-radius: 15px;
             overflow: hidden;
@@ -139,17 +31,13 @@
         
         .photo-slot {
             position: absolute;
-            width: 30%;
-            max-width: 250px;
-            aspect-ratio: 1/1;
-            border-radius: 50%;
+            width: 250px; /* Adjust to match your Photoshop blank space */
+            height: 250px; /* Adjust to match your Photoshop blank space */
+            border-radius: 50%; /* Change if your slot is rectangular */
             overflow: hidden;
-            top: 30%;
-            left: 50%;
-            transform: translateX(-50%);
+            top: 305px; /* Position of your blank space */
+            left: 375px; /* Position of your blank space */
             z-index: 2;
-            border: 5px solid white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         
         .member-photo {
@@ -161,16 +49,20 @@
         /* Name display area */
         .name-slot {
             position: absolute;
-            top: 58%;
+            top: 858px; /* Position below the photo */
             left: 0;
             width: 100%;
             text-align: center;
-            color: white;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            color: white; /* Change color to match your flyer */
+            font-size: 2.5em;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
             z-index: 2;
             font-family: Arial, sans-serif;
+        }
+        
+        .download-btn {
+            margin: 20px 0;
         }
         
         .flyer-actions {
@@ -178,7 +70,6 @@
             gap: 15px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-top: 30px;
         }
         
         .loading {
@@ -225,74 +116,31 @@
             color: var(--primary);
             margin-bottom: 15px;
         }
-        
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-        }
-        
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-        
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .btn-info:hover {
-            background: #138496;
-            transform: translateY(-2px);
-        }
-        
-        .btn-warning {
-            background: #ffc107;
-            color: var(--dark);
-        }
-        
-        .btn-warning:hover {
-            background: #e0a800;
-            transform: translateY(-2px);
-        }
-        
-        .btn-lg {
-            padding: 15px 30px;
-            font-size: 18px;
-        }
-        
-        .form-actions {
+
+        /* NEW: Name input field styling */
+        .name-input-container {
+            margin: 20px 0;
             text-align: center;
-            margin-top: 30px;
         }
         
-        .registration-form {
-            padding: 30px;
+        .name-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-align: center;
         }
         
+        .name-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        /* NEW: Photo quality tips */
         .photo-tips {
             background: #fff9e6;
             border-left: 4px solid #ffc107;
@@ -320,29 +168,8 @@
             font-weight: 600;
             margin-top: 10px;
         }
-        
-        .name-input-container {
-            margin: 20px 0;
-            text-align: center;
-        }
-        
-        .name-input {
-            width: 100%;
-            max-width: 400px;
-            padding: 15px 20px;
-            border: 2px solid #e9ecef;
-            border-radius: 50px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        
-        .name-input:focus {
-            border-color: var(--primary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
-        }
-        
+
+        /* NEW: Download instructions */
         .download-instructions {
             background: #e7f3ff;
             border-left: 4px solid #17a2b8;
@@ -364,16 +191,62 @@
         .download-instructions li {
             margin-bottom: 8px;
         }
-        
-        /* Mobile Responsive Adjustments */
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                text-align: center;
+
+        /* NEW: Responsive adjustments */
+        @media (max-width: 1100px) {
+            .flyer-template {
+                width: 800px;
+                height: 800px;
             }
             
-            .logo {
-                justify-content: center;
+            .photo-slot {
+                width: 200px;
+                height: 200px;
+                top: 244px;
+                left: 300px;
+            }
+            
+            .name-slot {
+                top: 686px;
+                font-size: 2em;
+            }
+        }
+        
+        @media (max-width: 850px) {
+            .flyer-template {
+                width: 600px;
+                height: 600px;
+            }
+            
+            .photo-slot {
+                width: 150px;
+                height: 150px;
+                top: 183px;
+                left: 225px;
+            }
+            
+            .name-slot {
+                top: 515px;
+                font-size: 1.8em;
+            }
+        }
+        
+        @media (max-width: 650px) {
+            .flyer-template {
+                width: 400px;
+                height: 400px;
+            }
+            
+            .photo-slot {
+                width: 100px;
+                height: 100px;
+                top: 122px;
+                left: 150px;
+            }
+            
+            .name-slot {
+                top: 343px;
+                font-size: 1.5em;
             }
             
             .flyer-actions {
@@ -384,41 +257,25 @@
             .btn {
                 width: 100%;
                 max-width: 300px;
-                justify-content: center;
-            }
-            
-            .photo-slot {
-                width: 40%;
-            }
-            
-            .card-header, .card-body, .registration-form {
-                padding: 20px;
             }
         }
         
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            
-            .header {
-                padding: 15px;
-            }
-            
-            .logo-text {
-                font-size: 20px;
-            }
-            
-            .upload-area {
-                padding: 20px;
-            }
-            
-            .upload-icon {
-                font-size: 2.5em;
+        @media (max-width: 450px) {
+            .flyer-template {
+                width: 350px;
+                height: 350px;
             }
             
             .photo-slot {
-                width: 50%;
+                width: 90px;
+                height: 90px;
+                top: 107px;
+                left: 130px;
+            }
+            
+            .name-slot {
+                top: 300px;
+                font-size: 1.3em;
             }
         }
     </style>
@@ -428,7 +285,7 @@
         <header class="header">
             <div class="header-content">
                 <div class="logo">
-                    <div class="logo-image" style="background: var(--primary); width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">JAYC</div>
+                    <img src="/images/Logo.png" alt="Church Logo" class="logo-image">
                     <span class="logo-text">JAYC Flyer Generator</span>
                 </div>
                 <a href="index.html" class="back-btn">
@@ -453,6 +310,7 @@
                        4. Download and share on social media!</p>
                 </div>
                 
+                <!-- NEW: Photo quality tips -->
                 <div class="photo-tips">
                     <h4><i class="fas fa-lightbulb"></i> For Best Results:</h4>
                     <ul>
@@ -483,7 +341,7 @@
                         <div id="photoInfo" style="margin-top: 10px; font-size: 14px; color: #6c757d;"></div>
                     </div>
 
-                    <!-- Name Input -->
+                    <!-- NEW: Name input field -->
                     <div class="name-input-container">
                         <input type="text" id="memberName" class="name-input" placeholder="Enter your name for the flyer" maxlength="30">
                     </div>
@@ -515,6 +373,7 @@
                     <p>Download and share to let everyone know you're coming to JAYC!</p>
                 </div>
                 
+                <!-- NEW: Download instructions -->
                 <div class="download-instructions">
                     <h4><i class="fas fa-download"></i> Download Instructions:</h4>
                     <ul>
@@ -529,18 +388,7 @@
                     <!-- This is where your Photoshop flyer goes -->
                     <div class="flyer-template" id="flyerCanvas">
                         <!-- Your base flyer image -->
-                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; padding: 40px;">
-                            <h1 style="font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 20px;">CONGRATULATIONS</h1>
-                            <p style="font-size: clamp(1rem, 3vw, 1.5rem); margin-bottom: 10px;">I AM REGISTERED FOR THE</p>
-                            <h2 style="font-size: clamp(1.5rem, 4vw, 2.25rem); margin-bottom: 30px;">JESUS ALIVE YOUTH CONFERENCE</h2>
-                            <div style="width: 30%; max-width: 250px; aspect-ratio: 1/1; border-radius: 50%; background: #333; margin: 20px 0; display: flex; align-items: center; justify-content: center; color: white;">
-                                <span>Photo Area</span>
-                            </div>
-                            <div style="background: white; color: #333; padding: 15px 40px; border-radius: 30px; font-size: clamp(1rem, 3vw, 1.5rem); font-weight: bold; margin-top: 20px;">
-                                Member Name
-                            </div>
-                            <p style="font-size: clamp(1.25rem, 3.5vw, 1.75rem); font-weight: bold; margin-top: 40px;">JESUS ALIVE YOUTH</p>
-                        </div>
+                        <img src="/images/jayc-flyer-template.png" class="base-flyer" alt="JAYC Flyer Template" id="baseFlyer">
                         
                         <!-- The photo slot - position this over the blank space in your flyer -->
                         <div class="photo-slot">
@@ -580,7 +428,7 @@
         let currentMemberName = "JAYC Member";
         let currentImageQuality = "good";
 
-        // Photo preview function
+        // Photo preview function - IMPROVED
         function previewPhoto(input) {
             const preview = document.getElementById('photoPreview');
             const file = input.files[0];
@@ -650,7 +498,7 @@
             }
         }
 
-        // Generate flyer function
+        // Generate flyer function - IMPROVED
         function generateFlyer() {
             const photoInput = document.getElementById('memberPhoto');
             const generateBtn = document.getElementById('generateBtn');
@@ -706,7 +554,7 @@
             }
         }
 
-        // Download flyer function
+        // Download flyer function - IMPROVED
         function downloadFlyer() {
             const downloadBtn = document.querySelector('.btn-success');
             const originalText = downloadBtn.innerHTML;
@@ -723,7 +571,7 @@
                 logging: false,
                 backgroundColor: null,
                 allowTaint: true,
-                width: 800,
+                width: 1000,
                 height: 1000
             }).then(canvas => {
                 const link = document.createElement('a');
