@@ -3,13 +3,13 @@ class Notifications {
     static emailConfig = {
         serviceId: 'service_ekvxkrl',
         templateId: 'template_k9mhapt', // Welcome template
-        inviterTemplateId: 'template_82vfdzo', // Replace with actual inviter template ID
+        inviterTemplateId: 'template_82vfdzo', // Inviter template
         userId: '2BTr21gGjQQVLvgFR'
     };
 
     // Email validation function
     static isValidEmail(email) {
-        if (!email || typeof email !== 'string') return false;
+        if (!email || typeof email !== 'string' || email.trim() === '') return false;
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email.trim());
     }
@@ -34,23 +34,23 @@ class Notifications {
         const notificationId = 'welcome_' + Date.now();
         
         try {
-            console.log('📧 Sending WELCOME email to new member:', memberData.email);
-
-            // Validate member email
-            if (!this.isValidEmail(memberData.email)) {
-                console.warn('⚠️ Invalid member email address:', memberData.email);
+            // Check if member has email - if not, skip gracefully
+            if (!memberData.email || !this.isValidEmail(memberData.email)) {
+                console.log('📧 No valid email provided, skipping welcome email');
                 this.logNotification({
                     type: 'EMAIL',
                     event: 'MEMBER_WELCOME',
-                    recipient: memberData.email,
+                    recipient: 'No email provided',
                     data: memberData,
-                    success: false,
-                    error: 'Invalid member email address',
+                    success: true, // Mark as success since it's intentional
+                    note: 'No email provided - skipped sending',
                     timestamp: new Date().toISOString(),
                     id: notificationId
                 });
-                return false;
+                return true; // Return true since it's not an error
             }
+
+            console.log('📧 Sending WELCOME email to new member:', memberData.email);
 
             const templateParams = {
                 to_email: memberData.email.trim(),
@@ -105,7 +105,7 @@ class Notifications {
             this.logNotification({
                 type: 'EMAIL',
                 event: 'MEMBER_WELCOME',
-                recipient: memberData.email,
+                recipient: memberData.email || 'No email provided',
                 data: memberData,
                 success: false,
                 error: error.message,
@@ -124,20 +124,20 @@ class Notifications {
         try {
             console.log('📧 Sending INVITER notification to:', inviterEmail);
 
-            // Validate inviter email
+            // Validate inviter email - if invalid, skip gracefully
             if (!this.isValidEmail(inviterEmail)) {
-                console.warn('⚠️ Invalid inviter email address:', inviterEmail);
+                console.warn('⚠️ Invalid inviter email address, skipping inviter notification:', inviterEmail);
                 this.logNotification({
                     type: 'EMAIL',
                     event: 'INVITER_NOTIFICATION',
-                    recipient: inviterEmail,
+                    recipient: inviterEmail || 'No email provided',
                     data: { inviterEmail, memberData },
-                    success: false,
-                    error: 'Invalid inviter email address',
+                    success: true, // Mark as success since it's intentional
+                    note: 'Invalid inviter email - skipped sending',
                     timestamp: new Date().toISOString(),
                     id: notificationId
                 });
-                return false;
+                return true; // Return true since it's not an error
             }
 
             const templateParams = {
@@ -195,7 +195,7 @@ class Notifications {
             this.logNotification({
                 type: 'EMAIL',
                 event: 'INVITER_NOTIFICATION',
-                recipient: inviterEmail,
+                recipient: inviterEmail || 'No email provided',
                 data: { inviterEmail, memberData },
                 success: false,
                 error: error.message,
@@ -216,7 +216,8 @@ class Notifications {
             localStorage.setItem('jayc_notification_logs', JSON.stringify(logs));
             
             const icon = notification.success ? '✅' : '❌';
-            console.log(`${icon} ${notification.type} ${notification.event} - ${notification.recipient}`);
+            const note = notification.note ? ` (${notification.note})` : '';
+            console.log(`${icon} ${notification.type} ${notification.event} - ${notification.recipient}${note}`);
         } catch (error) {
             console.error('❌ Failed to log notification:', error);
         }
@@ -235,15 +236,30 @@ class Notifications {
     static getStats() {
         try {
             const logs = JSON.parse(localStorage.getItem('jayc_notification_logs') || '[]');
+            
+            // Separate actual attempts from intentional skips
+            const actualAttempts = logs.filter(log => !log.note || !log.note.includes('skipped'));
+            const intentionalSkips = logs.filter(log => log.note && log.note.includes('skipped'));
+            
             return {
                 total: logs.length,
-                successful: logs.filter(log => log.success).length,
-                failed: logs.filter(log => !log.success).length,
+                attempted: actualAttempts.length,
+                skipped: intentionalSkips.length,
+                successful: actualAttempts.filter(log => log.success).length,
+                failed: actualAttempts.filter(log => !log.success).length,
                 emails: logs.filter(log => log.type === 'EMAIL').length,
                 sms: logs.filter(log => log.type === 'SMS').length
             };
         } catch (error) {
-            return { total: 0, successful: 0, failed: 0, emails: 0, sms: 0 };
+            return { 
+                total: 0, 
+                attempted: 0, 
+                skipped: 0, 
+                successful: 0, 
+                failed: 0, 
+                emails: 0, 
+                sms: 0 
+            };
         }
     }
 
@@ -261,4 +277,4 @@ if (typeof document !== 'undefined') {
 }
 
 window.Notifications = Notifications;
-console.log('✅ Dual-template Notifications system loaded');
+console.log('✅ Enhanced Notifications system loaded (email optional)');
