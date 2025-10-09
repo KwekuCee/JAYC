@@ -422,21 +422,6 @@
         </main>
     </div>
 
-    
-    <!-- NEW: Hidden flyer container for clean download -->
-    <div class="download-flyer-container" id="downloadFlyerContainer">
-        <div id="cleanFlyerCanvas" style="width: 1000px; height: 1000px; position: relative;">
-            <img src="/images/jayc-flyer-template.png" style="width: 100%; height: 100%; object-fit: cover;" alt="JAYC Flyer Template">
-            <div style="position: absolute; width: 250px; height: 250px; border-radius: 50%; overflow: hidden; top: 305px; left: 375px;">
-                <img id="downloadPhotoSlot" style="width: 100%; height: 100%; object-fit: cover;" src="" alt="Your Photo">
-            </div>
-            <div style="position: absolute; top: 858px; left: 0; width: 100%; text-align: center; color: white; font-size: 2.5em; font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); font-family: Arial, sans-serif;" id="downloadNameDisplay">
-                Member Name
-            </div>
-        </div>
-    </div>
-
-    
     <!-- HTML2Canvas for flyer download -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
@@ -541,11 +526,9 @@
             try {
                 // Use the already processed preview image
                 document.getElementById('memberPhotoSlot').src = preview.src;
-                document.getElementById('downloadPhotoSlot').src = preview.src;
                 
                 // Display the name
                 document.getElementById('nameDisplay').textContent = currentMemberName;
-                document.getElementById('downloadNameDisplay').textContent = currentMemberName;
                 
                 // Hide loading, show flyer
                 setTimeout(() => {
@@ -571,7 +554,7 @@
             }
         }
 
-         // Download flyer function - IMPROVED (No prompts, clean flyer only)
+        // Download flyer function - IMPROVED
         function downloadFlyer() {
             const downloadBtn = document.querySelector('.btn-success');
             const originalText = downloadBtn.innerHTML;
@@ -579,67 +562,38 @@
             downloadBtn.disabled = true;
             downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Downloading...';
             
-            // Use the hidden clean flyer container for download
-            html2canvas(document.getElementById('cleanFlyerCanvas'), {
+            // Show a message about where to find the file
+            alert('Your flyer will download shortly. Check your device\'s Downloads folder or Gallery app for the file named "JAYC_Flyer_' + currentMemberName.replace(/\s+/g, '_') + '.png"');
+            
+            html2canvas(document.getElementById('flyerCanvas'), {
                 scale: 3, // Higher quality
                 useCORS: true,
                 logging: false,
                 backgroundColor: null,
                 allowTaint: true,
                 width: 1000,
-                height: 1000,
-                x: 0,
-                y: 0,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: 1000,
-                windowHeight: 1000
+                height: 1000
             }).then(canvas => {
-                // Create download link
                 const link = document.createElement('a');
                 const fileName = currentMemberName.replace(/\s+/g, '_');
                 link.download = `JAYC_Flyer_${fileName}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
-                
-                // Trigger download without prompts
-                document.body.appendChild(link);
                 link.click();
-                document.body.removeChild(link);
                 
                 downloadBtn.disabled = false;
                 downloadBtn.innerHTML = originalText;
                 
-                // Show success message without interrupting
+                // Show success message with instructions
                 setTimeout(() => {
-                    // Optional: Show a subtle success indicator
-                    const successMsg = document.createElement('div');
-                    successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 10px 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
-                    successMsg.innerHTML = '<i class="fas fa-check"></i> Flyer downloaded successfully!';
-                    document.body.appendChild(successMsg);
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(successMsg);
-                    }, 3000);
-                }, 500);
-                
+                    alert('Flyer downloaded successfully! If you can\'t find it:\n\n1. Check your device\'s Downloads folder\n2. Look in your Gallery or Photos app\n3. Search for "JAYC_Flyer" in your file manager\n\nShare it on social media to invite others!');
+                }, 1000);
             }).catch(error => {
                 console.error('Error downloading flyer:', error);
-                
-                // Show error message
-                const errorMsg = document.createElement('div');
-                errorMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #dc3545; color: white; padding: 10px 20px; border-radius: 5px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3);';
-                errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Download failed. Please try again.';
-                document.body.appendChild(errorMsg);
-                
-                setTimeout(() => {
-                    document.body.removeChild(errorMsg);
-                }, 3000);
-                
+                alert('Error downloading flyer. Please try again with a stable internet connection.');
                 downloadBtn.disabled = false;
                 downloadBtn.innerHTML = originalText;
             });
         }
-
 
         // Share flyer function
         function shareFlyer() {
@@ -655,7 +609,7 @@
                         navigator.share({
                             files: [file],
                             title: 'My JAYC Flyer',
-                            text: `I'm ${currentMemberName} and I'm registered for Jesus Alive Youth Conference 2025! Check out my personalized flyer! #JAYC2025`
+                            text: `I'm ${currentMemberName} and I'm registered for Jesus Alive Youth Conference 2024! Check out my personalized flyer! #JAYC2024`
                         }).then(() => {
                             console.log('Flyer shared successfully');
                         }).catch(error => {
