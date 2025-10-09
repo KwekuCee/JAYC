@@ -260,12 +260,18 @@ async function registerMember(memberData) {
                 console.error('Notification failed, but registration succeeded:', notificationError);
             }
             
-            // Show success modal
+            // Show success modal briefly, then redirect to flyer page
             showSuccessModal();
-            
+
+            // Wait 2 seconds, then redirect to flyer page
+            setTimeout(() => {
+                closeModal();
+                window.location.href = 'flyer.html';
+            }, 2000);
+
             // Reset form
             document.getElementById('registrationForm').reset();
-            
+
             // Refresh the views
             await loadChurchGroups();
             
@@ -321,3 +327,4 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
+
