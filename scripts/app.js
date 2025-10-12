@@ -6,6 +6,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadChurchGroups();
     setupFormHandlers();
     
+    // Initialize countdown with seconds precision
+    initializeCountdown();
+    
+    // Initialize live stats
+    LiveStats.updateCounter();
+    LiveStats.startAutoUpdate();
+    
     // Run debug after a short delay
     setTimeout(debugInviters, 1000);
 });
@@ -26,6 +33,12 @@ function closeModal() {
     if (modal) {
         modal.style.display = 'none';
     }
+}
+
+// Close modal and redirect to flyer page
+function closeModalAndRedirect() {
+    closeModal();
+    window.location.href = 'flyer.html';
 }
 
 // Close modal when clicking outside
@@ -266,6 +279,10 @@ async function registerMember(memberData) {
             // Wait 2 seconds, then redirect to flyer page
             setTimeout(() => {
                 closeModal();
+                // Store member name for flyer page
+                if (memberData.full_name) {
+                    sessionStorage.setItem('lastRegisteredMember', memberData.full_name);
+                }
                 window.location.href = 'flyer.html';
             }, 2000);
 
@@ -318,6 +335,118 @@ async function debugInviters() {
     }
 }
 
+// Enhanced Countdown Timer
+function updateCountdown() {
+    // Set the event date: November 22, 2025 at 4:00 PM GMT
+    const eventDate = new Date('2025-11-07T16:00:00+00:00').getTime();
+    const now = new Date().getTime();
+    const distance = eventDate - now;
+
+    // If countdown is over
+    if (distance < 0) {
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        
+        // Update hero text when event has started
+        const heroTitle = document.querySelector('.hero-content h1');
+        const heroText = document.querySelector('.hero-content p');
+        if (heroTitle && heroText) {
+            heroTitle.textContent = 'JAYC 2025 is Live!';
+            heroText.textContent = 'The conference is happening right now! Join us at the National Theatre!';
+        }
+        return;
+    }
+
+    // Calculate time units
+    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+    // Update display
+    document.getElementById('days').textContent = days.toString().padStart(2, '0');
+    document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+    document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+    document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+
+    // Add pulsing animation to seconds for live feel
+    if (seconds % 2 === 0) {
+        document.getElementById('seconds').style.color = 'var(--success)';
+    } else {
+        document.getElementById('seconds').style.color = 'white';
+    }
+}
+
+// Progress Bar Calculation
+function updateProgressBar() {
+    const eventDate = new Date('2025-11-07T16:00:00+00:00').getTime();
+    const startDate = new Date('2024-01-01T00:00:00+00:00').getTime(); // Start of countdown period
+    const now = new Date().getTime();
+    
+    const totalDuration = eventDate - startDate;
+    const elapsed = now - startDate;
+    
+    let progress = (elapsed / totalDuration) * 100;
+    progress = Math.min(Math.max(progress, 0), 100); // Clamp between 0-100
+    
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    if (progressFill) {
+        progressFill.style.width = progress + '%';
+    }
+    
+    if (progressText) {
+        if (progress < 100) {
+            const daysLeft = Math.floor((eventDate - now) / (1000 * 60 * 60 * 24));
+            progressText.textContent = `${daysLeft} days until JAYC 2025 - ${Math.round(progress)}% closer!`;
+        } else {
+            progressText.textContent = 'JAYC 2025 is here! Join us now!';
+        }
+    }
+}
+
+// Initialize countdown with seconds precision
+function initializeCountdown() {
+    updateCountdown();
+    updateProgressBar();
+    // Update every second for real-time countdown
+    setInterval(updateCountdown, 1000);
+    // Update progress bar every minute
+    setInterval(updateProgressBar, 60000);
+}
+
+// Scroll to registration form
+function scrollToRegistration() {
+    document.getElementById('registration').scrollIntoView({ 
+        behavior: 'smooth' 
+    });
+}
+
+// Live Registration Counter
+class LiveStats {
+    static async updateCounter() {
+        try {
+            const members = await Database.getMembers();
+            const counter = document.getElementById('liveCounter');
+            if (counter) {
+                counter.textContent = members.length;
+                counter.style.animation = 'pulse 0.5s ease';
+                setTimeout(() => counter.style.animation = '', 500);
+            }
+        } catch (error) {
+            console.error('Error updating counter:', error);
+        }
+    }
+    
+    static startAutoUpdate() {
+        // Update every 30 seconds
+        setInterval(() => this.updateCounter(), 30000);
+    }
+}
+
 // Refresh data when coming back to the page
 window.addEventListener('pageshow', function() {
     populateInviterDropdown();
@@ -327,4 +456,5 @@ window.addEventListener('pageshow', function() {
 // Make functions globally available for HTML onclick events
 window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
-
+window.closeModalAndRedirect = closeModalAndRedirect;
+window.scrollToRegistration = scrollToRegistration;
