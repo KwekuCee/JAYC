@@ -379,10 +379,10 @@ function updateCountdown() {
     }
 }
 
-// Progress Bar Calculation
+// Progress Bar Calculation - FIXED
 function updateProgressBar() {
     const eventDate = new Date('2025-11-07T16:00:00+00:00').getTime();
-    const startDate = new Date('2024-01-01T00:00:00+00:00').getTime(); // Start of countdown period
+    const startDate = new Date('2025-01-01T00:00:00+00:00').getTime(); // Start of 2025
     const now = new Date().getTime();
     
     const totalDuration = eventDate - startDate;
@@ -401,7 +401,7 @@ function updateProgressBar() {
     if (progressText) {
         if (progress < 100) {
             const daysLeft = Math.floor((eventDate - now) / (1000 * 60 * 60 * 24));
-            progressText.textContent = `${daysLeft} days until JAYC 2025 - ${Math.round(progress)}% closer!`;
+            progressText.textContent = `${daysLeft} days until JAYC 2025`;
         } else {
             progressText.textContent = 'JAYC 2025 is here! Join us now!';
         }
