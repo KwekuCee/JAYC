@@ -8,7 +8,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
-    <link rel="stylesheet" href="/styles/main.css">
+    <link rel="stylesheet" href="styles/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
         <!-- Scripts -->
@@ -40,6 +40,60 @@
                 </nav>
             </div>
         </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                 <h1>Jesus Alive Youth Conference 2025</h1>
+                 <p>November 7, 2025 • National Theatre • 4:00 PM</p>
+        
+                <div class="countdown">
+                    <div class="countdown-item">
+                        <span id="days">00</span>
+                        <small>Days</small>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="hours">00</span>
+                        <small>Hours</small>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="minutes">00</span>
+                        <small>Minutes</small>
+                    </div>
+                    <div class="countdown-item">
+                        <span id="seconds">00</span>
+                        <small>Seconds</small>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">
+                    Counting down to JAYC 2025...
+                </div>
+
+                <div class="live-stats">
+                    <div class="stat-badge">
+                        <i class="fas fa-users"></i>
+                        <span id="liveCounter">0</span>
+                        <small>Youth Registered</small>
+                    </div>
+                </div>
+        
+                <button class="btn btn-primary btn-hero" onclick="scrollToRegistration()">
+                    <i class="fas fa-user-plus"></i>
+                     Register Now
+                </button>
+
+                <div class="event-details">
+                    <p><i class="fas fa-map-marker-alt"></i> The National Theatre, Accra</p>
+                    <p><i class="fas fa-clock"></i> 4:00 PM GMT</p>
+                </div>
+            </div>
+        </section>
+
 
         <!-- Main Content -->
         <main class="main-content">
