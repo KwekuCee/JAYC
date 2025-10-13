@@ -263,64 +263,6 @@ class Notifications {
         }
     }
 
-    // Add to Notifications class in notifications.js
-static async sendActiveInviterCongratulations(inviterEmail, inviterName, achievement) {
-    const notificationId = 'congrats_' + Date.now();
-    
-    try {
-        console.log('🎉 Sending congratulations to active inviter:', inviterEmail);
-
-        if (!this.isValidEmail(inviterEmail)) {
-            console.warn('Invalid email for congratulations:', inviterEmail);
-            return false;
-        }
-
-        const templateParams = {
-            to_email: inviterEmail.trim(),
-            to_name: inviterName,
-            achievement: achievement,
-            congratulation_date: new Date().toLocaleDateString(),
-            program_name: 'Jesus Alive Youth Conference (JAYC)'
-        };
-
-        let emailSent = false;
-        let emailResponse = null;
-
-        if (typeof emailjs !== 'undefined') {
-            try {
-                // You'll need to create this template in EmailJS
-                emailResponse = await emailjs.send(
-                    this.emailConfig.serviceId,
-                    'active_inviter_template', // Create this template
-                    templateParams
-                );
-                emailSent = true;
-                console.log('✅ Congratulations email sent to:', inviterEmail);
-            } catch (emailError) {
-                console.warn('⚠️ Congratulations email failed:', emailError);
-                emailSent = false;
-            }
-        }
-
-        this.logNotification({
-            type: 'EMAIL',
-            event: 'ACTIVE_INVITER_CONGRATS',
-            recipient: inviterEmail,
-            data: templateParams,
-            success: emailSent,
-            response: emailResponse,
-            timestamp: new Date().toISOString(),
-            id: notificationId
-        });
-
-        return emailSent;
-
-    } catch (error) {
-        console.error('❌ Error sending congratulations:', error);
-        return false;
-    }
-}
-
     static clearLogs() {
         localStorage.removeItem('jayc_notification_logs');
         console.log('📧 Notification logs cleared');
