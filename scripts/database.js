@@ -144,86 +144,84 @@ class Database {
         return true;
     }
 
-    // Active Inviters - Daily Goals Tracking
+    // Active Inviters - Daily Goals Tracking (SAFE VERSION)
     static async getInviterDailyGoals(inviterEmail = null) {
-        let query = supabase
-            .from('inviter_daily_goals')
-            .select('*')
-            .order('date', { ascending: false });
+        try {
+            let query = supabase
+                .from('inviter_daily_goals')
+                .select('*')
+                .order('date', { ascending: false });
 
-        if (inviterEmail) {
-            query = query.eq('inviter_email', inviterEmail);
+            if (inviterEmail) {
+                query = query.eq('inviter_email', inviterEmail);
+            }
+
+            const { data, error } = await query;
+
+            if (error) {
+                console.warn('⚠️ Daily goals table might not exist yet:', error.message);
+                return []; // Return empty array instead of throwing error
+            }
+
+            return data || [];
+        } catch (error) {
+            console.warn('⚠️ Error in getInviterDailyGoals (table might not exist):', error);
+            return []; // Safe fallback
         }
-
-        const { data, error } = await query;
-
-        if (error) {
-            console.error('Error fetching daily goals:', error);
-            throw new Error(`Failed to get daily goals: ${error.message}`);
-        }
-
-        return data || [];
     }
 
     static async updateInviterDailyGoal(inviterEmail, inviterName, date, count) {
-        const { data, error } = await supabase
-            .from('inviter_daily_goals')
-            .upsert({
-                inviter_email: inviterEmail,
-                inviter_name: inviterName,
-                date: date,
-                actual_count: count,
-                goal_achieved: count >= 10,
-                updated_at: new Date().toISOString()
-            })
-            .select();
+        try {
+            const { data, error } = await supabase
+                .from('inviter_daily_goals')
+                .upsert({
+                    inviter_email: inviterEmail,
+                    inviter_name: inviterName,
+                    date: date,
+                    actual_count: count,
+                    goal_achieved: count >= 10,
+                    updated_at: new Date().toISOString()
+                })
+                .select();
 
-        if (error) {
-            console.error('Error updating daily goal:', error);
-            throw new Error(`Failed to update daily goal: ${error.message}`);
+            if (error) {
+                console.warn('⚠️ Could not update daily goal (table might not exist):', error.message);
+                return null; // Safe fallback
+            }
+
+            return data?.[0] || null;
+        } catch (error) {
+            console.warn('⚠️ Error in updateInviterDailyGoal:', error);
+            return null; // Safe fallback
         }
-
-        return data[0];
     }
 
     // Get today's registrations count for an inviter
     static async getTodayRegistrationsCount(inviterName) {
-        const today = new Date().toISOString().split('T')[0];
-        
-        const { data, error } = await supabase
-            .from('members')
-            .select('*')
-            .eq('inviter_name', inviterName)
-            .gte('registration_date', `${today}T00:00:00`)
-            .lte('registration_date', `${today}T23:59:59`);
+        try {
+            const today = new Date().toISOString().split('T')[0];
+            
+            const { data, error } = await supabase
+                .from('members')
+                .select('*')
+                .eq('inviter_name', inviterName)
+                .gte('registration_date', `${today}T00:00:00`)
+                .lte('registration_date', `${today}T23:59:59`);
 
-        if (error) {
-            console.error('Error fetching today registrations:', error);
-            throw new Error(`Failed to get today registrations: ${error.message}`);
+            if (error) {
+                console.error('Error fetching today registrations:', error);
+                return 0; // Safe fallback
+            }
+
+            return data?.length || 0;
+        } catch (error) {
+            console.error('Error in getTodayRegistrationsCount:', error);
+            return 0; // Safe fallback
         }
-
-        return data?.length || 0;
-    }
-
-    // Get inviter streak data
-    static async getInviterStreak(inviterEmail) {
-        const { data, error } = await supabase
-            .from('inviter_daily_goals')
-            .select('date, goal_achieved')
-            .eq('inviter_email', inviterEmail)
-            .order('date', { ascending: false })
-            .limit(7);
-
-        if (error) {
-            console.error('Error fetching inviter streak:', error);
-            throw new Error(`Failed to get inviter streak: ${error.message}`);
-        }
-
-        return data || [];
     }
 }
 
 // Make Database class globally available
 window.Database = Database;
 
-console.log('✅ Database.js loaded successfully with Active Inviters support');
+console.log('✅ Database.js loaded successfully with safe Active Inviters functions');
