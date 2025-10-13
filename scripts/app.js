@@ -447,6 +447,163 @@ class LiveStats {
     }
 }
 
+// Active Inviter System
+class ActiveInviters {
+    static async updateDailyGoals() {
+        try {
+            const members = await Database.getMembers();
+            const inviters = await Database.getInviters();
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Group today's registrations by inviter
+            const todayRegistrations = members.filter(member => 
+                member.registration_date.split('T')[0] === today
+            );
+            
+            const inviterCounts = {};
+            todayRegistrations.forEach(member => {
+                inviterCounts[member.inviter_name] = (inviterCounts[member.inviter_name] || 0) + 1;
+            });
+            
+            // Update daily goals for each inviter
+            for (const [inviterName, count] of Object.entries(inviterCounts)) {
+                const inviter = inviters.find(inv => inv.full_name === inviterName);
+                if (inviter) {
+                    await Database.updateInviterDailyGoal(
+                        inviter.email,
+                        inviterName,
+                        today,
+                        count
+                    );
+                    
+                    // Check if goal achieved and send congratulations
+                    if (count >= 10) {
+                        await this.checkAndAwardAchievements(inviter.email, inviterName);
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error updating daily goals:', error);
+        }
+    }
+    
+    static async checkAndAwardAchievements(inviterEmail, inviterName) {
+        try {
+            const goals = await Database.getInviterDailyGoals(inviterEmail);
+            const last7Days = goals.slice(0, 7); // Get last 7 days
+            
+            // Check for daily achievement
+            const today = new Date().toISOString().split('T')[0];
+            const todayGoal = goals.find(g => g.date === today);
+            
+            if (todayGoal && todayGoal.goal_achieved) {
+                await Notifications.sendActiveInviterCongratulations(
+                    inviterEmail,
+                    inviterName,
+                    'Daily Goal Achiever - Successfully invited 10+ people today!'
+                );
+            }
+            
+            // Check for weekly achievement (3+ consecutive days)
+            let consecutiveDays = 0;
+            let currentStreak = 0;
+            
+            for (let i = 0; i < last7Days.length; i++) {
+                if (last7Days[i].goal_achieved) {
+                    currentStreak++;
+                    consecutiveDays = Math.max(consecutiveDays, currentStreak);
+                } else {
+                    currentStreak = 0;
+                }
+            }
+            
+            if (consecutiveDays >= 3) {
+                await Notifications.sendActiveInviterCongratulations(
+                    inviterEmail,
+                    inviterName,
+                    `Weekly Active Inviter - Achieved daily goal for ${consecutiveDays} consecutive days!`
+                );
+            }
+            
+        } catch (error) {
+            console.error('Error checking achievements:', error);
+        }
+    }
+    
+    static async getActiveInviters() {
+        try {
+            const goals = await Database.getInviterDailyGoals();
+            const today = new Date().toISOString().split('T')[0];
+            const inviters = await Database.getInviters();
+            
+            // Get today's active inviters
+            const todayActive = goals
+                .filter(g => g.date === today && g.goal_achieved)
+                .map(g => {
+                    const inviter = inviters.find(inv => inv.email === g.inviter_email);
+                    return {
+                        ...g,
+                        church_name: inviter?.church_name || 'Unknown',
+                        consecutive_days: this.calculateConsecutiveDays(goals, g.inviter_email)
+                    };
+                });
+            
+            // Get weekly active inviters (3+ consecutive days)
+            const weeklyActive = todayActive.filter(inviter => 
+                inviter.consecutive_days >= 3
+            );
+            
+            return {
+                daily: todayActive,
+                weekly: weeklyActive,
+                stats: {
+                    total_daily: todayActive.length,
+                    total_weekly: weeklyActive.length,
+                    date: today
+                }
+            };
+            
+        } catch (error) {
+            console.error('Error getting active inviters:', error);
+            return { daily: [], weekly: [], stats: { total_daily: 0, total_weekly: 0, date: new Date().toISOString().split('T')[0] } };
+        }
+    }
+    
+    static calculateConsecutiveDays(goals, inviterEmail) {
+        const inviterGoals = goals
+            .filter(g => g.inviter_email === inviterEmail)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        let streak = 0;
+        let currentDate = new Date();
+        
+        for (let i = 0; i < 7; i++) { // Check last 7 days
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayGoal = inviterGoals.find(g => g.date === dateStr);
+            
+            if (dayGoal && dayGoal.goal_achieved) {
+                streak++;
+            } else {
+                break;
+            }
+            
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+        
+        return streak;
+    }
+}
+
+// Update the DOMContentLoaded to start daily tracking
+document.addEventListener('DOMContentLoaded', function() {
+    // ... existing code ...
+    
+    // Start active inviter tracking (check every hour)
+    setInterval(() => ActiveInviters.updateDailyGoals(), 60 * 60 * 1000);
+    ActiveInviters.updateDailyGoals(); // Run immediately
+});
+
 // Refresh data when coming back to the page
 window.addEventListener('pageshow', function() {
     populateInviterDropdown();
