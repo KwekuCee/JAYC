@@ -1307,34 +1307,5 @@ body {
     }
 }
 
-/* Improve focus visibility */
-.btn:focus,
-.sidebar-item:focus,
-.form-group input:focus,
-.search-input:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
 
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    :root {
-        --shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-    
-    .stat-card {
-        border: 2px solid var(--dark);
-    }
-}
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --light: #1a1b2e;
-        --dark: #f8f9fa;
-        --white: #2b2d42;
-    }
-    
-    .admin-main {
-        background: #1a1b2e;
-    }
-}
