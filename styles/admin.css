@@ -1220,3 +1220,121 @@ body {
     }
 }
 
+/* Loading animation for admin sections */
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: var(--gray);
+}
+
+.loading-state i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Better table responsiveness */
+@media (max-width: 768px) {
+    .management-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .management-table thead,
+    .management-table tbody,
+    .management-table th,
+    .management-table td,
+    .management-table tr {
+        display: block;
+    }
+    
+    .management-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    
+    .management-table tr {
+        border: 1px solid #ccc;
+        margin-bottom: 0.5rem;
+    }
+    
+    .management-table td {
+        border: none;
+        border-bottom: 1px solid #eee;
+        position: relative;
+        padding-left: 50%;
+        text-align: left;
+    }
+    
+    .management-table td:before {
+        position: absolute;
+        top: 50%;
+        left: 1rem;
+        transform: translateY(-50%);
+        font-weight: 600;
+        content: attr(data-label);
+    }
+}
+
+@media print {
+    .admin-sidebar,
+    .admin-header,
+    .btn {
+        display: none;
+    }
+    
+    .admin-main {
+        margin-left: 0;
+    }
+    
+    .content-card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .stat-card {
+        break-inside: avoid;
+    }
+}
+
+/* Improve focus visibility */
+.btn:focus,
+.sidebar-item:focus,
+.form-group input:focus,
+.search-input:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .stat-card {
+        border: 2px solid var(--dark);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --light: #1a1b2e;
+        --dark: #f8f9fa;
+        --white: #2b2d42;
+    }
+    
+    .admin-main {
+        background: #1a1b2e;
+    }
+}
