@@ -64,6 +64,41 @@ function showAdminDashboard() {
     loadAdminData();
 }
 
+// Mobile sidebar functionality
+function toggleSidebar() {
+    const sidebar = document.querySelector('.admin-sidebar');
+    const overlay = document.querySelector('.sidebar-overlay') || createOverlay();
+    
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+    
+    // Close sidebar when clicking overlay
+    overlay.onclick = function() {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+    };
+}
+
+function createOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
+// Close sidebar when switching sections on mobile
+function showSection(sectionId) {
+    // Your existing section switching code...
+    
+    // Close sidebar on mobile after selection
+    if (window.innerWidth <= 768) {
+        const sidebar = document.querySelector('.admin-sidebar');
+        const overlay = document.querySelector('.sidebar-overlay');
+        if (sidebar) sidebar.classList.remove('mobile-open');
+        if (overlay) overlay.classList.remove('active');
+    }
+}
+
 // Load admin data
 async function loadAdminData() {
     try {
@@ -1211,4 +1246,5 @@ style.textContent = `
         gap: 0.5rem;
     }
 `;
+
 document.head.appendChild(style);
