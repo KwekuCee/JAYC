@@ -1241,71 +1241,9 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Better table responsiveness */
-@media (max-width: 768px) {
-    .management-table {
-        display: block;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    
-    .management-table thead,
-    .management-table tbody,
-    .management-table th,
-    .management-table td,
-    .management-table tr {
-        display: block;
-    }
-    
-    .management-table thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-    
-    .management-table tr {
-        border: 1px solid #ccc;
-        margin-bottom: 0.5rem;
-    }
-    
-    .management-table td {
-        border: none;
-        border-bottom: 1px solid #eee;
-        position: relative;
-        padding-left: 50%;
-        text-align: left;
-    }
-    
-    .management-table td:before {
-        position: absolute;
-        top: 50%;
-        left: 1rem;
-        transform: translateY(-50%);
-        font-weight: 600;
-        content: attr(data-label);
-    }
-}
 
-@media print {
-    .admin-sidebar,
-    .admin-header,
-    .btn {
-        display: none;
-    }
-    
-    .admin-main {
-        margin-left: 0;
-    }
-    
-    .content-card {
-        box-shadow: none;
-        border: 1px solid #000;
-    }
-    
-    .stat-card {
-        break-inside: avoid;
-    }
-}
+
+
 
 
 
