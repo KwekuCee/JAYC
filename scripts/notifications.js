@@ -29,6 +29,100 @@ class Notifications {
         return false;
     }
 
+    // NEW: Create sample notification data for testing
+    static createSampleData() {
+        console.log('📧 Creating sample notification data...');
+        
+        const sampleNotifications = [
+            {
+                type: 'EMAIL',
+                event: 'MEMBER_WELCOME',
+                recipient: 'test.member@example.com',
+                data: {
+                    to_name: 'John Doe',
+                    church_name: 'Sample Church',
+                    program_name: 'Jesus Alive Youth Conference (JAYC)'
+                },
+                success: true,
+                timestamp: new Date().toISOString(),
+                id: 'sample_welcome_1'
+            },
+            {
+                type: 'EMAIL',
+                event: 'INVITER_NOTIFICATION',
+                recipient: 'test.inviter@example.com',
+                data: {
+                    inviter_name: 'Sarah Johnson',
+                    member_name: 'John Doe',
+                    member_church: 'Sample Church'
+                },
+                success: true,
+                timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                id: 'sample_inviter_1'
+            },
+            {
+                type: 'EMAIL',
+                event: 'MEMBER_WELCOME',
+                recipient: 'No email provided',
+                data: {
+                    to_name: 'Mike Smith',
+                    church_name: 'Another Church'
+                },
+                success: true,
+                note: 'No email provided - skipped sending',
+                timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+                id: 'sample_skipped_1'
+            },
+            {
+                type: 'EMAIL',
+                event: 'INVITER_NOTIFICATION',
+                recipient: 'invalid-email',
+                data: {
+                    inviter_name: 'David Wilson',
+                    member_name: 'Mike Smith'
+                },
+                success: false,
+                error: 'Invalid email format',
+                timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+                id: 'sample_failed_1'
+            },
+            {
+                type: 'EMAIL',
+                event: 'ACTIVE_INVITER_CONGRATS',
+                recipient: 'top.inviter@example.com',
+                data: {
+                    to_name: 'Emily Chen',
+                    achievement: 'Weekly Active Inviter - Achieved daily goal for 5 consecutive days!'
+                },
+                success: true,
+                timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+                id: 'sample_congrats_1'
+            }
+        ];
+
+        // Only create sample data if no notifications exist
+        const existingLogs = this.getNotifications();
+        if (existingLogs.length === 0) {
+            localStorage.setItem('jayc_notification_logs', JSON.stringify(sampleNotifications));
+            console.log('✅ Sample notification data created with', sampleNotifications.length, 'entries');
+        } else {
+            console.log('📧 Existing notifications found:', existingLogs.length, 'entries');
+        }
+        
+        return sampleNotifications;
+    }
+
+    // NEW: Debug function to check notification system
+    static debug() {
+        console.group('📧 Notifications Debug Info');
+        console.log('LocalStorage key:', localStorage.getItem('jayc_notification_logs') ? 'Exists' : 'Missing');
+        console.log('Total notifications:', this.getNotifications().length);
+        console.log('Stats:', this.getStats());
+        console.log('EmailJS available:', typeof emailjs !== 'undefined');
+        console.groupEnd();
+        return this.getStats();
+    }
+
     // Send welcome email to NEW MEMBER
     static async sendMemberWelcome(memberData) {
         const notificationId = 'welcome_' + Date.now();
@@ -229,6 +323,7 @@ class Notifications {
             if (type !== 'all') logs = logs.filter(log => log.type === type);
             return logs.slice(0, limit);
         } catch (error) {
+            console.warn('❌ Error getting notifications:', error);
             return [];
         }
     }
@@ -251,6 +346,7 @@ class Notifications {
                 sms: logs.filter(log => log.type === 'SMS').length
             };
         } catch (error) {
+            console.warn('❌ Error getting notification stats:', error);
             return { 
                 total: 0, 
                 attempted: 0, 
@@ -263,18 +359,97 @@ class Notifications {
         }
     }
 
+    // Send congratulations to active inviters
+    static async sendActiveInviterCongratulations(inviterEmail, inviterName, achievement) {
+        const notificationId = 'congrats_' + Date.now();
+        
+        try {
+            console.log('🎉 Sending congratulations to active inviter:', inviterEmail);
+
+            if (!this.isValidEmail(inviterEmail)) {
+                console.warn('Invalid email for congratulations:', inviterEmail);
+                return false;
+            }
+
+            const templateParams = {
+                to_email: inviterEmail.trim(),
+                to_name: inviterName,
+                achievement: achievement,
+                congratulation_date: new Date().toLocaleDateString(),
+                program_name: 'Jesus Alive Youth Conference (JAYC)'
+            };
+
+            let emailSent = false;
+            let emailResponse = null;
+
+            if (typeof emailjs !== 'undefined') {
+                try {
+                    // Use inviter template as fallback
+                    emailResponse = await emailjs.send(
+                        this.emailConfig.serviceId,
+                        this.emailConfig.inviterTemplateId, // Fallback to inviter template
+                        templateParams
+                    );
+                    emailSent = true;
+                    console.log('✅ Congratulations email sent to:', inviterEmail);
+                } catch (emailError) {
+                    console.warn('⚠️ Congratulations email failed:', emailError);
+                    emailSent = false;
+                }
+            }
+
+            this.logNotification({
+                type: 'EMAIL',
+                event: 'ACTIVE_INVITER_CONGRATS',
+                recipient: inviterEmail,
+                data: templateParams,
+                success: emailSent,
+                response: emailResponse,
+                timestamp: new Date().toISOString(),
+                id: notificationId
+            });
+
+            return emailSent;
+
+        } catch (error) {
+            console.error('❌ Error sending congratulations:', error);
+            return false;
+        }
+    }
+
     static clearLogs() {
         localStorage.removeItem('jayc_notification_logs');
         console.log('📧 Notification logs cleared');
+        return true;
+    }
+
+    // NEW: Test notification system
+    static test() {
+        console.log('🧪 Testing notification system...');
+        
+        // Create sample data
+        this.createSampleData();
+        
+        // Test stats
+        const stats = this.getStats();
+        console.log('📊 Test Results:', stats);
+        
+        return stats;
     }
 }
 
-// Initialize
+// Initialize and create sample data
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => Notifications.init(), 1000);
+        setTimeout(() => {
+            Notifications.init();
+            // Create sample data on first load
+            Notifications.createSampleData();
+        }, 1000);
     });
 }
 
+// Make globally available
 window.Notifications = Notifications;
-console.log('✅ Enhanced Notifications system loaded (email optional)');
+
+console.log('✅ Enhanced Notifications system loaded with sample data');

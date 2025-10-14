@@ -196,6 +196,37 @@ body {
     box-shadow: 0 12px 25px rgba(72, 149, 239, 0.3);
 }
 
+/* ADDED: Missing Button Styles */
+.btn-download {
+    background: linear-gradient(135deg, var(--success), #38b2ac);
+    color: var(--white);
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(76, 201, 240, 0.3);
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, var(--info), #4299e1);
+    color: var(--white);
+}
+
+.btn-edit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(66, 153, 225, 0.3);
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, var(--danger), #e53e3e);
+    color: var(--white);
+}
+
+.btn-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px rgba(229, 62, 62, 0.3);
+}
+
 .btn-sm {
     padding: 10px 16px;
     font-size: 13px;
@@ -378,6 +409,10 @@ body {
     font-size: 1.2rem;
     cursor: pointer;
     transition: var(--transition);
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1001;
 }
 
 .mobile-menu-btn:hover {
@@ -483,7 +518,7 @@ body {
 
 .card-body {
     padding: 24px;
-    max-height: 400px;
+    max-height: 750px;
     overflow-y: auto;
 }
 
@@ -494,6 +529,12 @@ body {
 
 .admin-section.active {
     display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Distribution Chart */
@@ -744,15 +785,6 @@ body {
         margin-left: 0;
     }
     
-    /* Mobile Menu Button */
-    .mobile-menu-btn {
-        display: flex !important;
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 1001;
-    }
-    
     .admin-header {
         padding: 1rem 1.5rem;
         padding-left: 70px;
@@ -930,15 +962,17 @@ body {
         opacity: 0; 
     }
 }
+
 /* Analytics Styles */
 .analytics-controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
-    padding: 1rem;
+    padding: 1.5rem;
     background: var(--light);
     border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .filter-group {
@@ -950,25 +984,196 @@ body {
 .filter-group label {
     font-weight: 600;
     color: var(--dark);
+    font-size: 14px;
 }
 
 .filter-group select,
 .filter-group input {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border: 2px solid #e9ecef;
     border-radius: 8px;
     background: var(--white);
+    font-size: 14px;
+    min-width: 150px;
 }
 
 .analytics-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
+    margin-bottom: 2rem;
 }
 
+/* UPDATED: Chart container with better height */
 .chart-container {
-    height: 300px;
+    min-height: 400px; /* Increased from 300px */
+    height: auto;
     position: relative;
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+/* NEW: Analytics card specific styles */
+.analytics-card {
+    background: var(--white);
+    border-radius: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.analytics-card .card-header {
+    background: linear-gradient(135deg, var(--info), #4cc9f0);
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.analytics-card .card-header h3 {
+    color: var(--white);
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.analytics-card .card-body {
+    padding: 2rem;
+    min-height: 800px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* NEW: Analytics metrics display */
+.analytics-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.metric-card {
+    background: var(--light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border-left: 4px solid var(--info);
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.metric-label {
+    font-size: 0.875rem;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+/* NEW: Trends display */
+.trends-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.trend-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--light);
+    border-radius: 8px;
+    border-left: 4px solid var(--success);
+}
+
+.trend-date {
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.trend-count {
+    background: var(--success);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+/* NEW: Responsive analytics */
+@media (max-width: 1024px) {
+    .analytics-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .chart-container {
+        min-height: 350px;
+    }
+}
+
+@media (max-width: 768px) {
+    .analytics-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group select,
+    .filter-group input {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .analytics-metrics {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    
+    .chart-container {
+        min-height: 300px;
+        padding: 1.5rem;
+    }
+    
+    .analytics-card .card-body {
+        padding: 1.5rem;
+        min-height: 800px;
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-metrics {
+        grid-template-columns: 1fr;
+    }
+    
+    .chart-container {
+        min-height: 250px;
+        padding: 1rem;
+    }
+    
+    .metric-card {
+        padding: 1rem;
+    }
+    
+    .metric-value {
+        font-size: 1.5rem;
+    }
 }
 
 /* Attendance Styles */
@@ -1092,6 +1297,9 @@ body {
 .stat-card.small {
     padding: 1rem;
     text-align: center;
+    background: var(--white);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
 }
 
 .stat-card.small h3 {
@@ -1220,30 +1428,99 @@ body {
     }
 }
 
-/* Loading animation for admin sections */
-.loading-state {
+/* Active Inviters Styles */
+.active-inviters-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.active-inviters-section {
+    background: var(--light);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.active-inviter-item {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    border-left: 4px solid var(--success);
+}
+
+.weekly-inviter {
+    border-left-color: gold;
+}
+
+.inviter-badge {
+    background: var(--success);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+.weekly-badge {
+    background: gold;
+    color: #000;
+}
+
+/* ADDED: Loading States */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
     align-items: center;
     justify-content: center;
-    padding: 3rem;
-    color: var(--gray);
+    z-index: 9999;
 }
 
-.loading-state i {
+.loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.loading-content i {
     font-size: 2rem;
+    color: var(--primary);
     margin-bottom: 1rem;
-    animation: spin 1s linear infinite;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+/* ADDED: Focus states for accessibility */
+.btn:focus,
+.sidebar-item:focus,
+.form-group input:focus,
+.search-input:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
 }
 
-
-
-
-
-
-
+/* ADDED: Print styles */
+@media print {
+    .admin-sidebar,
+    .admin-header,
+    .btn {
+        display: none;
+    }
+    
+    .admin-main {
+        margin-left: 0;
+    }
+    
+    .content-card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+}

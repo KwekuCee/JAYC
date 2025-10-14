@@ -6,17 +6,17 @@
     <title>JAYC Registration</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     
     <link rel="stylesheet" href="styles/main.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-        <!-- Scripts -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-    <script src="/scripts/database.js"></script>
-    <script src="/scripts/app.js"></script>
-    <script src="/scripts/notifications.js"></script>
+    <script src="scripts/database.js"></script>
+    <script src="scripts/notifications.js"></script>
+    <script src="scripts/app.js"></script>
 </head>
 <body>
     <div class="container">
@@ -24,11 +24,11 @@
         <header class="header">
             <div class="header-content">
                <div class="logo">
-                    <img src="/images/Logo.png" alt="Church Logo" class="logo-image">
-                    
+                    <img src="images/Logo.png" alt="Church Logo" class="logo-image">
                 </div>
                 <nav class="nav">
                     <button class="nav-btn active" data-tab="registration">Registration</button>
+                    <button class="nav-btn" data-tab="inviters">View Inviters</button>
                     <a href="signup.html" class="signup-btn">
                         <i class="fas fa-user-plus"></i>
                         Sign Up as Inviter
@@ -94,7 +94,6 @@
             </div>
         </section>
 
-
         <!-- Main Content -->
         <main class="main-content">
             <!-- Registration Section -->
@@ -102,7 +101,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h2><i class="fas fa-user-plus"></i> Member Registration</h2>
-                        <p>Register new members</p>
+                        <p>Register new members for JAYC 2025</p>
                     </div>
                     
                     <form id="registrationForm" class="registration-form">
@@ -112,7 +111,8 @@
                                     <i class="fas fa-user"></i>
                                     Full Name *
                                 </label>
-                                <input type="text" id="fullName" name="fullName" required>
+                                <input type="text" id="fullName" name="fullName" required 
+                                       placeholder="Enter your full name">
                             </div>
 
                             <div class="form-group">
@@ -120,7 +120,8 @@
                                     <i class="fas fa-envelope"></i>
                                     Email Address
                                 </label>
-                                <input type="email" id="email" name="email">
+                                <input type="email" id="email" name="email"
+                                       placeholder="your.email@example.com">
                                 <small class="help-text">Provide email if you'd like to receive updates (optional)</small>
                             </div>
 
@@ -129,7 +130,8 @@
                                     <i class="fas fa-phone"></i>
                                     Phone Number *
                                 </label>
-                                <input type="tel" id="phone" name="phone" required>
+                                <input type="tel" id="phone" name="phone" required
+                                       placeholder="+233 XX XXX XXXX">
                             </div>
 
                             <div class="form-group">
@@ -137,7 +139,8 @@
                                     <i class="fas fa-briefcase"></i>
                                     Occupation *
                                 </label>
-                                <input type="text" id="occupation" name="occupation" required>
+                                <input type="text" id="occupation" name="occupation" required
+                                       placeholder="Student, Teacher, Engineer, etc.">
                             </div>
 
                             <div class="form-group">
@@ -145,7 +148,8 @@
                                     <i class="fas fa-map-marker-alt"></i>
                                     Location *
                                 </label>
-                                <input type="text" id="location" name="location" required>
+                                <input type="text" id="location" name="location" required
+                                       placeholder="Accra, Kumasi, Takoradi, etc.">
                             </div>
 
                             <div class="form-group">
@@ -157,6 +161,7 @@
                                     <option value="">Select Inviter</option>
                                     <!-- Dynamically populated -->
                                 </select>
+                                <small class="help-text">Choose the person who invited you to JAYC</small>
                             </div>
                         </div>
 
@@ -179,7 +184,10 @@
                     </div>
                     
                     <div class="church-groups" id="churchGroups">
-                        <!-- Dynamically populated -->
+                        <div class="empty-state">
+                            <i class="fas fa-church"></i>
+                            <p>Loading inviters...</p>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -195,61 +203,17 @@
             <h3>Registration Successful!</h3>
             <p>Member has been registered successfully.</p>
             <p><strong>Redirecting to flyer generator...</strong></p>
-            <button class="btn btn-primary" onclick="closeModal()">Continue</button>
+            <p><small>🎯 Your inviter is one step closer to becoming an Active Inviter!</small></p>
+            <button class="btn btn-primary" onclick="closeModalAndRedirect()">Create Flyer & Continue</button>
         </div>
     </div>
-    
-    <script>
-        // Debug script
-        console.log('Page loaded successfully');
 
-        // Check if form exists
-        const form = document.getElementById('registrationForm');
-        console.log('Form found:', !!form);
-
-        // Check if inviter dropdown is populated
-        const inviterSelect = document.getElementById('inviterName');
-        console.log('Inviter select options:', inviterSelect ? inviterSelect.options.length : 'not found');
-
-        // Enhanced Supabase test function
-        async function testSupabase() {
-            console.log('Testing Supabase connection...');
-            
-            try {
-                // Test 1: Check if we can query inviters table
-                const { data, error } = await supabase.from('inviters').select('count');
-                console.log('Table access test:', error ? 'FAILED: ' + error.message : 'SUCCESS');
-                
-                if (!error) {
-                    // Test 2: Get actual inviters to verify data
-                    const { data: inviters, error: invitersError } = await supabase
-                        .from('inviters')
-                        .select('*')
-                        .limit(5);
-                    
-                    console.log('Inviters in database:', invitersError ? 'ERROR: ' + invitersError.message : inviters);
-                }
-                
-            } catch (error) {
-                console.error('Supabase test failed completely:', error);
-            }
-        }
-
-        // Run test when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(testSupabase, 1000);
-        });
-    </script>
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Processing registration...</p>
+        </div>
+    </div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-

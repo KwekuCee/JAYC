@@ -240,8 +240,31 @@ function setupFormHandlers() {
             return;
         }
         
+        // Show loading state
+        const submitBtn = document.querySelector('.btn-register');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+        submitBtn.disabled = true;
+        
+        // Show loading overlay
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'flex';
+        }
+        
         // Register member
-        registerMember(formData);
+        try {
+            await registerMember(formData);
+        } finally {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            
+            // Hide loading overlay
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        }
     });
     
     console.log('Form handler setup complete');
@@ -268,6 +291,9 @@ async function registerMember(memberData) {
                 const inviter = inviters.find(inv => inv.full_name === memberData.inviter_name);
                 if (inviter) {
                     await Notifications.sendInviterNotification(inviter.email, memberData);
+                    
+                    // Update daily goals for active inviter tracking
+                    await ActiveInviters.updateDailyGoals();
                 }
             } catch (notificationError) {
                 console.error('Notification failed, but registration succeeded:', notificationError);
@@ -337,7 +363,7 @@ async function debugInviters() {
 
 // Enhanced Countdown Timer
 function updateCountdown() {
-    // Set the event date: November 22, 2025 at 4:00 PM GMT
+    // Set the event date: November 7, 2025 at 4:00 PM GMT
     const eventDate = new Date('2025-11-07T16:00:00+00:00').getTime();
     const now = new Date().getTime();
     const distance = eventDate - now;
@@ -447,6 +473,185 @@ class LiveStats {
     }
 }
 
+// Active Inviter System
+class ActiveInviters {
+    static async updateDailyGoals() {
+        try {
+            const members = await Database.getMembers();
+            const inviters = await Database.getInviters();
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Group today's registrations by inviter
+            const todayRegistrations = members.filter(member => 
+                member.registration_date && 
+                member.registration_date.split('T')[0] === today
+            );
+            
+            const inviterCounts = {};
+            todayRegistrations.forEach(member => {
+                if (member.inviter_name) {
+                    inviterCounts[member.inviter_name] = (inviterCounts[member.inviter_name] || 0) + 1;
+                }
+            });
+            
+            // Update daily goals for each inviter
+            for (const [inviterName, count] of Object.entries(inviterCounts)) {
+                const inviter = inviters.find(inv => inv.full_name === inviterName);
+                if (inviter) {
+                    await Database.updateInviterDailyGoal(
+                        inviter.email,
+                        inviterName,
+                        today,
+                        count
+                    );
+                    
+                    // Check if goal achieved and send congratulations
+                    if (count >= 10) {
+                        await this.checkAndAwardAchievements(inviter.email, inviterName);
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error updating daily goals:', error);
+        }
+    }
+    
+    static async checkAndAwardAchievements(inviterEmail, inviterName) {
+        try {
+            const goals = await Database.getInviterDailyGoals(inviterEmail);
+            const last7Days = goals.slice(0, 7); // Get last 7 days
+            
+            // Check for daily achievement
+            const today = new Date().toISOString().split('T')[0];
+            const todayGoal = goals.find(g => g.date === today);
+            
+            if (todayGoal && todayGoal.goal_achieved) {
+                await Notifications.sendActiveInviterCongratulations(
+                    inviterEmail,
+                    inviterName,
+                    'Daily Goal Achiever - Successfully invited 10+ people today!'
+                );
+            }
+            
+            // Check for weekly achievement (3+ consecutive days)
+            let consecutiveDays = 0;
+            let currentStreak = 0;
+            
+            for (let i = 0; i < last7Days.length; i++) {
+                if (last7Days[i].goal_achieved) {
+                    currentStreak++;
+                    consecutiveDays = Math.max(consecutiveDays, currentStreak);
+                } else {
+                    currentStreak = 0;
+                }
+            }
+            
+            if (consecutiveDays >= 3) {
+                await Notifications.sendActiveInviterCongratulations(
+                    inviterEmail,
+                    inviterName,
+                    `Weekly Active Inviter - Achieved daily goal for ${consecutiveDays} consecutive days!`
+                );
+            }
+            
+        } catch (error) {
+            console.error('Error checking achievements:', error);
+        }
+    }
+    
+    static async getActiveInviters() {
+        try {
+            const goals = await Database.getInviterDailyGoals();
+            const today = new Date().toISOString().split('T')[0];
+            const inviters = await Database.getInviters();
+            
+            // Get today's active inviters
+            const todayActive = goals
+                .filter(g => g.date === today && g.goal_achieved)
+                .map(g => {
+                    const inviter = inviters.find(inv => inv.email === g.inviter_email);
+                    return {
+                        ...g,
+                        church_name: inviter?.church_name || 'Unknown',
+                        consecutive_days: this.calculateConsecutiveDays(goals, g.inviter_email)
+                    };
+                });
+            
+            // Get weekly active inviters (3+ consecutive days)
+            const weeklyActive = todayActive.filter(inviter => 
+                inviter.consecutive_days >= 3
+            );
+            
+            return {
+                daily: todayActive,
+                weekly: weeklyActive,
+                stats: {
+                    total_daily: todayActive.length,
+                    total_weekly: weeklyActive.length,
+                    date: today
+                }
+            };
+            
+        } catch (error) {
+            console.error('Error getting active inviters:', error);
+            return { 
+                daily: [], 
+                weekly: [], 
+                stats: { 
+                    total_daily: 0, 
+                    total_weekly: 0, 
+                    date: new Date().toISOString().split('T')[0] 
+                } 
+            };
+        }
+    }
+    
+    static calculateConsecutiveDays(goals, inviterEmail) {
+        const inviterGoals = goals
+            .filter(g => g.inviter_email === inviterEmail)
+            .sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        let streak = 0;
+        let currentDate = new Date();
+        
+        for (let i = 0; i < 7; i++) { // Check last 7 days
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayGoal = inviterGoals.find(g => g.date === dateStr);
+            
+            if (dayGoal && dayGoal.goal_achieved) {
+                streak++;
+            } else {
+                break;
+            }
+            
+            currentDate.setDate(currentDate.getDate() - 1);
+        }
+        
+        return streak;
+    }
+}
+
+// CRITICAL FIX: Make ActiveInviters globally available
+window.ActiveInviters = ActiveInviters;
+
+// Update the DOMContentLoaded to start daily tracking
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Starting active inviter tracking...');
+    
+    // Start active inviter tracking (check every hour)
+    setInterval(() => {
+        if (typeof ActiveInviters !== 'undefined') {
+            ActiveInviters.updateDailyGoals();
+        }
+    }, 60 * 60 * 1000);
+    
+    // Run immediately if available
+    if (typeof ActiveInviters !== 'undefined') {
+        ActiveInviters.updateDailyGoals();
+    }
+});
+
 // Refresh data when coming back to the page
 window.addEventListener('pageshow', function() {
     populateInviterDropdown();
@@ -458,3 +663,5 @@ window.showSuccessModal = showSuccessModal;
 window.closeModal = closeModal;
 window.closeModalAndRedirect = closeModalAndRedirect;
 window.scrollToRegistration = scrollToRegistration;
+
+console.log('✅ App.js loaded successfully with ActiveInviters system');

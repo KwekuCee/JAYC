@@ -12,9 +12,6 @@
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --border-radius: 12px;
     --transition: all 0.3s ease;
-    --spiritual: #8B4513; /* Brown for earthy/spiritual */
-    --hope: #FFD700;     /* Gold for hope */
-    --faith: #228B22;    /* Forest green for faith */
 }
 
 * {
@@ -177,6 +174,13 @@ body {
 .stat-badge span {
     font-weight: bold;
     font-size: 1.3em;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 /* Event Details */
@@ -211,12 +215,6 @@ body {
 .btn-hero:hover {
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(76, 201, 240, 0.4);
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
 }
 
 /* ===== EVENT HIGHLIGHTS ===== */
@@ -635,6 +633,12 @@ body {
     padding: 1rem;
     border-radius: 8px;
     border-left: 4px solid var(--success);
+    transition: var(--transition);
+}
+
+.inviter-card:hover {
+    transform: translateX(5px);
+    background: #e9ecef;
 }
 
 .inviter-card h4 {
@@ -691,6 +695,16 @@ body {
     color: var(--dark);
 }
 
+.modal p {
+    margin-bottom: 1rem;
+    color: var(--gray);
+}
+
+.modal small {
+    color: var(--success);
+    font-weight: 600;
+}
+
 /* ===== SIGNUP CARD SPECIFIC ===== */
 .signup-card {
     max-width: 600px;
@@ -723,6 +737,84 @@ body {
 .btn-lg {
     padding: 1.25rem 2rem;
     font-size: 1.1rem;
+}
+
+/* ===== LOADING OVERLAY ===== */
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-content {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    box-shadow: var(--shadow);
+}
+
+.loading-content i {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+/* ===== ACTIVE INVITER BADGES ===== */
+.active-inviter-badge {
+    background: linear-gradient(135deg, #ffd700, #ff6b00);
+    color: var(--dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.weekly-inviter-badge {
+    background: linear-gradient(135deg, #4cc9f0, #4361ee);
+    color: var(--white);
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+.btn:focus,
+.nav-btn:focus,
+.form-group input:focus,
+.form-group select:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+    .header,
+    .hero,
+    .btn,
+    .nav {
+        display: none;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #000;
+    }
+    
+    .container {
+        max-width: none;
+        padding: 0;
+    }
 }
 
 /* ===== MOBILE RESPONSIVENESS ===== */
@@ -899,6 +991,11 @@ body {
     .logo-image {
         height: 40px;
     }
+    
+    /* Modal adjustments */
+    .modal-content {
+        padding: 1.5rem 1rem;
+    }
 }
 
 /* Fix for iOS form elements */
@@ -915,73 +1012,15 @@ body {
     .form-group select:focus {
         font-size: 16px;
     }
-
 }
 
-/* Add to button styles */
-.btn:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* Add to form elements */
-.form-group input:focus,
-.form-group select:focus {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* Add loading animation */
-@keyframes loading {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-}
-
-.loading {
-    animation: loading 1.5s ease-in-out infinite;
-}
-
-@media print {
-    .hero, .nav, .btn {
-        display: none;
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
     }
     
     .card {
-        box-shadow: none;
-        border: 1px solid #000;
+        border: 2px solid var(--dark);
     }
-}
-
-/* Add this to ensure tab system works */
-#registration.tab-content.active,
-#inviters.tab-content.active {
-    display: block;
-}
-
-/* Style the inviters section specifically */
-#inviters .church-groups {
-    padding: 2rem;
-}
-
-/* Ensure modal appears above everything */
-.modal {
-    z-index: 10000;
-}
-
-.header {
-    z-index: 100;
-    position: relative;
-}
-
-.form-group.error input,
-.form-group.error select {
-    border-color: var(--danger);
-    box-shadow: 0 0 0 3px rgba(247, 37, 133, 0.1);
-}
-
-.error-message {
-    color: var(--danger);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
 }

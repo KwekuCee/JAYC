@@ -6,31 +6,20 @@
     <title>Admin Dashboard - JAYC</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
-    <link rel="stylesheet" href="/styles/admin.css">
+    <link rel="stylesheet" href="styles/admin.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <!-- Scripts -->
+    
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-    <script src="/scripts/database.js"></script>
-    <script src="/scripts/notifications.js"></script>
-    <script src="/scripts/admin.js"></script>
-
-    <script>
-    // Temporary emergency functions
-    window.showNotification = function(message, type = 'info') {
-        alert(message);
-    }
-    
-    window.generateAllInviterFiles = function() {
-        alert('This feature will be implemented in the admin.js file');
-    }
-    
-    // Debug
-    console.log('Admin page loaded successfully');
-    </script>
+    <script src="scripts/database.js"></script>
+    <script src="scripts/analytics.js"></script>
+    <script src="scripts/notifications.js"></script>
+    <script src="scripts/app.js"></script>
+    <script src="scripts/admin.js"></script>
 </head>
 <body>
     <div class="admin-container">
@@ -75,7 +64,7 @@
             <nav class="admin-sidebar">
                 <div class="sidebar-header">
                     <div class="sidebar-brand">
-                        <img src="/images/Logo2.png" alt="Church Logo" class="sidebar-logo">
+                        <img src="images/Logo2.png" alt="Church Logo" class="sidebar-logo">
                         <div>
                             <h1>Admin Panel</h1>
                             <p>JAYC Registration</p>
@@ -88,6 +77,10 @@
                         <i class="fas fa-chart-bar"></i>
                         Overview
                     </a>
+                    <a href="#analytics" class="sidebar-item" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-line"></i>
+                        Analytics
+                    </a>
                     <a href="#files" class="sidebar-item" onclick="showSection('files')">
                         <i class="fas fa-file-excel"></i>
                         File Management
@@ -99,6 +92,14 @@
                     <a href="#members" class="sidebar-item" onclick="showSection('members')">
                         <i class="fas fa-users-cog"></i>
                         Manage Members
+                    </a>
+                    <a href="#attendance" class="sidebar-item" onclick="showSection('attendance')">
+                        <i class="fas fa-calendar-check"></i>
+                        Attendance
+                    </a>
+                    <a href="#notifications" class="sidebar-item" onclick="showSection('notifications')">
+                        <i class="fas fa-bell"></i>
+                        Notifications
                     </a>
                     <a href="#exports" class="sidebar-item" onclick="showSection('exports')">
                         <i class="fas fa-download"></i>
@@ -210,6 +211,60 @@
                     </div>
                 </section>
 
+                <!-- Analytics Section -->
+                <section id="analytics" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="analytics-controls">
+                                    <div class="filter-group">
+                                        <label>Time Period:</label>
+                                        <select id="analyticsPeriod">
+                                            <option value="7">Last 7 Days</option>
+                                            <option value="30" selected>Last 30 Days</option>
+                                            <option value="90">Last 90 Days</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-primary btn-sm" onclick="loadAnalytics()">
+                                        <i class="fas fa-refresh"></i> Update Charts
+                                    </button>
+                                </div>
+                                <div class="analytics-grid">
+                                    <div class="content-card">
+                                        <div class="card-header">
+                                            <h3><i class="fas fa-chart-bar"></i> Registration Trends</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="registrationTrends" class="chart-container">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-chart-bar"></i>
+                                                    <p>Chart will load here</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="content-card">
+                                        <div class="card-header">
+                                            <h3><i class="fas fa-trophy"></i> Top Inviters</h3>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="topInviters" class="inviter-performance">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-users"></i>
+                                                    <p>Top inviters will appear here</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- File Management Section -->
                 <section id="files" class="admin-section">
                     <div class="admin-content">
@@ -263,6 +318,108 @@
                     </div>
                 </section>
 
+                <!-- Attendance Section -->
+                <section id="attendance" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-calendar-check"></i> Attendance Management</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="attendance-controls">
+                                    <div class="control-group">
+                                        <label>Select Date:</label>
+                                        <input type="date" id="attendanceDate">
+                                        <button class="btn btn-primary btn-sm" onclick="loadAttendance()">Load Attendance</button>
+                                    </div>
+                                    <div class="control-group">
+                                        <button class="btn btn-success btn-sm" onclick="markAllPresent()">
+                                            <i class="fas fa-check-circle"></i> Mark All Present
+                                        </button>
+                                        <button class="btn btn-warning btn-sm" onclick="createNewEvent()">
+                                            <i class="fas fa-plus"></i> Create Event
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="attendance-list" id="attendanceList">
+                                    <div class="empty-state">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <p>Select a date to load attendance</p>
+                                    </div>
+                                </div>
+
+                                <!-- Events Management -->
+                                <div class="events-section">
+                                    <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
+                                    <div class="events-list" id="eventsList">
+                                        <div class="empty-state">
+                                            <i class="fas fa-calendar-plus"></i>
+                                            <p>No upcoming events scheduled</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Notifications Section -->
+                <section id="notifications" class="admin-section">
+                    <div class="admin-content">
+                        <div class="content-card" style="grid-column: 1 / -1;">
+                            <div class="card-header">
+                                <h2><i class="fas fa-bell"></i> Notifications Log</h2>
+                            </div>
+                            <div class="card-body">
+                                <div class="notification-controls">
+                                    <div class="filter-group">
+                                        <label>Filter by Type:</label>
+                                        <select id="notificationFilter" onchange="loadNotifications()">
+                                            <option value="all">All Notifications</option>
+                                            <option value="EMAIL">Emails</option>
+                                            <option value="SMS">SMS</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn btn-secondary btn-sm" onclick="clearNotificationLogs()">
+                                        <i class="fas fa-trash"></i> Clear Logs
+                                    </button>
+                                </div>
+
+                                <div class="notification-stats">
+                                    <div class="stat-cards">
+                                        <div class="stat-card small">
+                                            <div class="stat-info">
+                                                <h3 id="totalNotifications">0</h3>
+                                                <p>Total Sent</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card small">
+                                            <div class="stat-info">
+                                                <h3 id="successfulNotifications">0</h3>
+                                                <p>Successful</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card small">
+                                            <div class="stat-info">
+                                                <h3 id="failedNotifications">0</h3>
+                                                <p>Failed</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="notifications-log" id="notificationsLog">
+                                    <div class="empty-state">
+                                        <i class="fas fa-bell-slash"></i>
+                                        <p>No notifications sent yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Export Section -->
                 <section id="exports" class="admin-section">
                     <div class="admin-content">
@@ -289,123 +446,23 @@
                         </div>
                     </div>
                 </section>
-                <!-- Analytics Section -->
-<!-- Attendance Section -->
-<section id="attendance" class="admin-section">
-    <div class="admin-content">
-        <div class="content-card" style="grid-column: 1 / -1;">
-            <div class="card-header">
-                <h2><i class="fas fa-calendar-check"></i> Attendance Management</h2>
-            </div>
-            <div class="card-body">
-                <div class="attendance-controls">
-                    <div class="control-group">
-                        <label>Select Date:</label>
-                        <input type="date" id="attendanceDate" value="<?php echo date('Y-m-d'); ?>">
-                        <button class="btn btn-primary btn-sm" onclick="loadAttendance()">Load Attendance</button>
-                    </div>
-                    <div class="control-group">
-                        <button class="btn btn-success btn-sm" onclick="markAllPresent()">
-                            <i class="fas fa-check-circle"></i> Mark All Present
-                        </button>
-                        <button class="btn btn-warning btn-sm" onclick="createEvent()">
-                            <i class="fas fa-plus"></i> Create Event
-                        </button>
-                    </div>
-                </div>
-
-                <div class="attendance-list" id="attendanceList">
-                    <!-- Attendance records will be loaded here -->
-                </div>
-
-                <!-- Events Management -->
-                <div class="events-section">
-                    <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
-                    <div class="events-list" id="eventsList">
-                        <!-- Events will be loaded here -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Notifications Section -->
-<section id="notifications" class="admin-section">
-    <div class="admin-content">
-        <div class="content-card" style="grid-column: 1 / -1;">
-            <div class="card-header">
-                <h2><i class="fas fa-bell"></i> Notifications Log</h2>
-            </div>
-            <div class="card-body">
-                <div class="notification-controls">
-                    <div class="filter-group">
-                        <label>Filter by Type:</label>
-                        <select id="notificationFilter" onchange="loadNotifications()">
-                            <option value="all">All Notifications</option>
-                            <option value="EMAIL">Emails</option>
-                            <option value="SMS">SMS</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="clearNotificationLogs()">
-                        <i class="fas fa-trash"></i> Clear Logs
-                    </button>
-                </div>
-
-                <div class="notification-stats">
-                    <div class="stat-cards">
-                        <div class="stat-card small">
-                            <div class="stat-info">
-                                <h3 id="totalNotifications">0</h3>
-                                <p>Total Sent</p>
-                            </div>
-                        </div>
-                        <div class="stat-card small">
-                            <div class="stat-info">
-                                <h3 id="successfulNotifications">0</h3>
-                                <p>Successful</p>
-                            </div>
-                        </div>
-                        <div class="stat-card small">
-                            <div class="stat-info">
-                                <h3 id="failedNotifications">0</h3>
-                                <p>Failed</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="notifications-log" id="notificationsLog">
-                    <!-- Notifications will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
             </main>
         </div>
     </div>
 
     <script>
-        // Temporary emergency functions
-        window.showNotification = function(message, type = 'info') {
-            alert(message);
-        }
-        
-        window.generateAllInviterFiles = function() {
-            alert('This feature will be implemented in the admin.js file');
-        }
-        
-        // Debug
-        console.log('Admin page loaded successfully');
+        // Set today's date as default for attendance
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+        });
     </script>
+    <script>
+    // Debug script loading
+    console.log('Script loading order:');
+    console.log('1. Supabase:', typeof supabase !== 'undefined');
+    console.log('2. Database:', typeof Database !== 'undefined');
+    console.log('3. Analytics:', typeof Analytics !== 'undefined');
+    console.log('4. ActiveInviters:', typeof ActiveInviters !== 'undefined');
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-

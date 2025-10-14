@@ -80,8 +80,28 @@ async function loadAdminData() {
         loadFileManagement(members, inviters);
         loadInvitersManagement(inviters);
         loadMembersManagement(members);
+        loadAnalytics(); // Load analytics data
+        loadNotifications(); // Load notifications log
+        loadActiveInviters(); // Load active inviters
         
         setupSearch();
+
+         // Load analytics only if Analytics class is available
+        if (typeof Analytics !== 'undefined') {
+            await loadAnalytics();
+        } else {
+            console.warn('Analytics class not available, skipping analytics');
+        }
+        
+        // Load notifications
+        await loadNotifications();
+        
+        // Load active inviters only if ActiveInviters class is available
+        if (typeof ActiveInviters !== 'undefined') {
+            await loadActiveInviters();
+        } else {
+            console.warn('ActiveInviters class not available, skipping active inviters');
+        }
         
     } catch (error) {
         console.error('Error loading admin data:', error);
@@ -550,21 +570,34 @@ function showSection(sectionId) {
     // Add active class to clicked sidebar item
     event.target.classList.add('active');
     
-    // Update section title
+    // Update section title and description
+    updateSectionHeader(sectionId);
+}
+
+// Update section header based on section
+function updateSectionHeader(sectionId) {
     const sectionTitles = {
         overview: 'Dashboard Overview',
+        analytics: 'Analytics Dashboard',
         files: 'File Management',
         inviters: 'Manage Inviters',
         members: 'Manage Members',
-        exports: 'Data Export'
+        attendance: 'Attendance Management',
+        notifications: 'Notifications Log',
+        exports: 'Data Export',
+        'active-inviters': 'Active Inviters Leaderboard'
     };
     
     const sectionDescriptions = {
         overview: 'Real-time statistics and analytics',
+        analytics: 'Registration trends and performance metrics',
         files: 'Download Excel files for each inviter',
         inviters: 'Manage registered inviters',
         members: 'Manage all member registrations',
-        exports: 'Export complete datasets'
+        attendance: 'Track event attendance and create events',
+        notifications: 'View email and SMS notification logs',
+        exports: 'Export complete datasets',
+        'active-inviters': 'Daily and weekly goal achievers'
     };
     
     document.getElementById('sectionTitle').textContent = sectionTitles[sectionId] || 'Admin Panel';
@@ -758,6 +791,383 @@ window.addEventListener('resize', function() {
     }
 });
 
+// Load Analytics Data
+async function loadAnalytics() {
+    try {
+        // Check if Analytics class exists
+        if (typeof Analytics === 'undefined') {
+            console.warn('Analytics class not available');
+            showNotification('Analytics features not available', 'warning');
+            return;
+        }
+        
+        const period = document.getElementById('analyticsPeriod')?.value || 30;
+        const trends = await Analytics.getRegistrationTrends(parseInt(period));
+        const performance = await Analytics.getInviterPerformance();
+        const dailyStats = await Analytics.getDailyStats();
+        
+        // Update registration trends
+        const trendsContainer = document.getElementById('registrationTrends');
+        if (!trendsContainer) {
+            console.warn('Analytics container not found');
+            return;
+        }
+        
+        if (trends.labels.length === 0) {
+            trendsContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <p>No registration data available for the selected period</p>
+                    <small>Data will appear here once registrations start coming in</small>
+                </div>
+            `;
+        } else {
+            // Enhanced analytics display
+            trendsContainer.innerHTML = `
+                <div class="trends-display">
+                    <div class="analytics-metrics">
+                        <div class="metric-card">
+                            <div class="metric-value">${trends.total || trends.data.reduce((a, b) => a + b, 0)}</div>
+                            <div class="metric-label">Total Registrations</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${trends.average || Math.round(trends.data.reduce((a, b) => a + b, 0) / trends.data.length)}</div>
+                            <div class="metric-label">Average Per Day</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">${period}</div>
+                            <div class="metric-label">Days Analyzed</div>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin: 1.5rem 0 1rem 0; color: var(--dark);">Recent Activity</h4>
+                    ${trends.labels.slice(-7).map((label, index) => {
+                        const dataIndex = trends.labels.length - 7 + index;
+                        return `
+                            <div class="trend-item">
+                                <div class="trend-date">${new Date(label).toLocaleDateString()}</div>
+                                <div class="trend-count">${trends.data[dataIndex]} registrations</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+        
+        // Update top inviters
+        const topInvitersContainer = document.getElementById('topInviters');
+        if (topInvitersContainer) {
+            const sortedInviters = Object.entries(performance)
+                .sort(([,a], [,b]) => b.count - a.count)
+                .slice(0, 5);
+                
+            if (sortedInviters.length === 0) {
+                topInvitersContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-trophy"></i>
+                        <p>No inviter performance data available</p>
+                        <small>Performance data will appear as inviters start registering members</small>
+                    </div>
+                `;
+            } else {
+                topInvitersContainer.innerHTML = `
+                    <div style="display: flex; flex-direction: column; gap: 1rem; height: 100%;">
+                        <div class="analytics-metrics">
+                            <div class="metric-card">
+                                <div class="metric-value">${Object.keys(performance).length}</div>
+                                <div class="metric-label">Total Inviters</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">${Math.max(...Object.values(performance).map(p => p.count))}</div>
+                                <div class="metric-label">Top Score</div>
+                            </div>
+                        </div>
+                        
+                        <h4 style="margin: 0 0 1rem 0; color: var(--dark);">Top Performers</h4>
+                        
+                        <div style="flex: 1; overflow-y: auto;">
+                            ${sortedInviters
+                                .map(([name, data], index) => `
+                                    <div class="inviter-rank" style="margin-bottom: 0.75rem;">
+                                        <div class="rank-number ${index < 3 ? `rank-${index + 1}` : ''}">${index + 1}</div>
+                                        <div class="inviter-details">
+                                            <strong>${name}</strong>
+                                            <div style="font-size: 0.9em; color: var(--gray);">${data.church}</div>
+                                        </div>
+                                        <div class="inviter-count">${data.count} members</div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error loading analytics:', error);
+        showNotification('Error loading analytics data', 'error');
+    }
+}
+
+// Load Notifications Log
+async function loadNotifications() {
+    try {
+        console.log('🔔 Loading notifications...');
+        
+        // Ensure Notifications class is available
+        if (typeof Notifications === 'undefined') {
+            console.error('❌ Notifications class not available');
+            const notificationsLog = document.getElementById('notificationsLog');
+            if (notificationsLog) {
+                notificationsLog.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Notifications system not available</p>
+                        <small>Please refresh the page</small>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        const filter = document.getElementById('notificationFilter')?.value || 'all';
+        const notifications = Notifications.getNotifications(50, filter === 'all' ? 'all' : filter);
+        const stats = Notifications.getStats();
+        
+        console.log('📊 Notifications loaded:', { 
+            filter, 
+            count: notifications.length,
+            stats 
+        });
+
+        // Update stats cards
+        const totalEl = document.getElementById('totalNotifications');
+        const successEl = document.getElementById('successfulNotifications');
+        const failedEl = document.getElementById('failedNotifications');
+        
+        if (totalEl) totalEl.textContent = stats.total;
+        if (successEl) successEl.textContent = stats.successful;
+        if (failedEl) failedEl.textContent = stats.failed;
+
+        const notificationsLog = document.getElementById('notificationsLog');
+        
+        if (!notificationsLog) {
+            console.error('❌ Notifications log container not found');
+            return;
+        }
+
+        if (notifications.length === 0) {
+            notificationsLog.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No notifications found</p>
+                    <small>Notifications will appear here when emails are sent</small>
+                    <button class="btn btn-primary btn-sm" onclick="Notifications.createSampleData(); setTimeout(loadNotifications, 500);" style="margin-top: 1rem;">
+                        <i class="fas fa-plus"></i> Load Sample Data
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        // Create notifications HTML
+        const notificationsHTML = notifications.map(notification => {
+            const successClass = notification.success ? 'success' : 'error';
+            const icon = notification.success ? 'fa-check' : 'fa-times';
+            const timeAgo = getTimeAgo(notification.timestamp);
+            
+            return `
+                <div class="notification-log-item ${successClass}">
+                    <div class="notification-info">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; gap: 1rem;">
+                            <div style="flex: 1;">
+                                <strong style="display: block; margin-bottom: 0.25rem;">${notification.event}</strong>
+                                <span class="notification-type">${notification.type}</span>
+                            </div>
+                            <div style="color: ${notification.success ? 'var(--success)' : 'var(--danger)'}; font-size: 1.2rem;">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-meta">
+                            <span><i class="fas fa-user"></i> ${notification.recipient}</span>
+                            <span><i class="fas fa-clock"></i> ${timeAgo}</span>
+                        </div>
+                        
+                        ${notification.note ? `
+                            <div style="font-size: 0.875rem; color: var(--info); margin-top: 0.5rem; padding: 0.5rem; background: rgba(72, 149, 239, 0.1); border-radius: 4px; border-left: 3px solid var(--info);">
+                                <i class="fas fa-info-circle"></i> ${notification.note}
+                            </div>
+                        ` : ''}
+                        
+                        ${notification.error ? `
+                            <div style="font-size: 0.875rem; color: var(--danger); margin-top: 0.5rem; padding: 0.5rem; background: rgba(247, 37, 133, 0.1); border-radius: 4px; border-left: 3px solid var(--danger);">
+                                <i class="fas fa-exclamation-triangle"></i> ${notification.error}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        notificationsLog.innerHTML = notificationsHTML;
+        console.log('✅ Notifications displayed successfully');
+        
+    } catch (error) {
+        console.error('❌ Error loading notifications:', error);
+        const notificationsLog = document.getElementById('notificationsLog');
+        if (notificationsLog) {
+            notificationsLog.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error loading notifications</p>
+                    <small>${error.message}</small>
+                    <button class="btn btn-primary btn-sm" onclick="loadNotifications()" style="margin-top: 1rem;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
+        }
+    }
+}
+
+// Helper function to show time ago
+function getTimeAgo(timestamp) {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffMs = now - time;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    
+    return time.toLocaleDateString();
+}
+
+// Clear notification logs
+function clearNotificationLogs() {
+    if (confirm('Are you sure you want to clear all notification logs? This action cannot be undone.')) {
+        Notifications.clearLogs();
+        showNotification('Notification logs cleared successfully!', 'success');
+        loadNotifications();
+    }
+}
+
+// Load Active Inviters
+async function loadActiveInviters() {
+    try {
+        const activeData = await ActiveInviters.getActiveInviters();
+        
+        // If there's a specific container for active inviters, update it
+        const activeContainer = document.getElementById('activeInvitersContent');
+        if (activeContainer) {
+            const html = `
+                <div class="active-inviters-section">
+                    <h3><i class="fas fa-calendar-day"></i> Daily Active Inviters</h3>
+                    <p>Invited 10+ people today</p>
+                    ${activeData.daily.length === 0 ? 
+                        '<div class="empty-state"><p>No daily active inviters yet</p></div>' :
+                        activeData.daily.map(inviter => `
+                            <div class="active-inviter-item">
+                                <div>
+                                    <strong>${inviter.inviter_name}</strong>
+                                    <div style="font-size: 0.9em; color: var(--gray);">
+                                        ${inviter.church_name} • ${inviter.actual_count} members
+                                    </div>
+                                </div>
+                                <span class="inviter-badge">${inviter.consecutive_days} days</span>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+                
+                <div class="active-inviters-section">
+                    <h3><i class="fas fa-calendar-week"></i> Weekly Active Inviters</h3>
+                    <p>3+ consecutive days of 10+ invitations</p>
+                    ${activeData.weekly.length === 0 ? 
+                        '<div class="empty-state"><p>No weekly active inviters yet</p></div>' :
+                        activeData.weekly.map(inviter => `
+                            <div class="active-inviter-item weekly-inviter">
+                                <div>
+                                    <strong>${inviter.inviter_name}</strong>
+                                    <div style="font-size: 0.9em; color: var(--gray);">
+                                        ${inviter.church_name} • ${inviter.consecutive_days} days streak
+                                    </div>
+                                </div>
+                                <span class="inviter-badge weekly-badge">⭐ Weekly</span>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+            `;
+            
+            activeContainer.innerHTML = html;
+        }
+        
+    } catch (error) {
+        console.error('Error loading active inviters:', error);
+    }
+}
+
+// Create Event Function - FIXED
+function createNewEvent() {
+    const eventName = prompt('Enter event name:');
+    if (!eventName) return;
+    
+    const eventDate = prompt('Enter event date (YYYY-MM-DD):');
+    if (!eventDate) return;
+    
+    const eventTime = prompt('Enter event time (HH:MM):', '16:00');
+    if (!eventTime) return;
+    
+    // Validate date format
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(eventDate)) {
+        showNotification('Please enter a valid date in YYYY-MM-DD format', 'error');
+        return;
+    }
+    
+    // Validate time format
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(eventTime)) {
+        showNotification('Please enter a valid time in HH:MM format', 'error');
+        return;
+    }
+    
+    // Combine date and time
+    const eventDateTime = `${eventDate}T${eventTime}:00`;
+    
+    // In a real implementation, you would save this to your database
+    // For now, we'll just show a notification
+    showNotification(`Event "${eventName}" created for ${eventDate} at ${eventTime}`, 'success');
+    
+    console.log('New event created:', {
+        name: eventName,
+        date: eventDateTime,
+        created: new Date().toISOString()
+    });
+    
+    // You can add database saving logic here later:
+    // await saveEventToDatabase({ name: eventName, date: eventDateTime });
+}
+
+// Attendance Management Functions
+async function loadAttendance() {
+    showNotification('Attendance feature coming soon!', 'info');
+}
+
+function markAllPresent() {
+    showNotification('Mark all present feature coming soon!', 'info');
+}
+
+function createNewEvent() {
+    showNotification('Create event feature coming soon!', 'info');
+}
+
 // Make functions globally available
 window.showSection = showSection;
 window.refreshData = refreshData;
@@ -771,6 +1181,12 @@ window.editMember = editMember;
 window.deleteInviter = deleteInviter;
 window.deleteMember = deleteMember;
 window.toggleSidebar = toggleSidebar;
+window.loadAnalytics = loadAnalytics;
+window.loadNotifications = loadNotifications;
+window.clearNotificationLogs = clearNotificationLogs;
+window.loadAttendance = loadAttendance;
+window.markAllPresent = markAllPresent;
+window.createEvent = createEvent;
 
 // Add CSS animations for notifications
 const style = document.createElement('style');
